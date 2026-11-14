@@ -75,6 +75,19 @@ const mediaFields = {
   size: { type: Number, required: true, min: 1 },
 };
 
+const AiModerationSchema = new Schema<AiModerationResult>(
+  {
+    verdict: { type: String, enum: ["approve", "review", "reject"], required: true },
+    confidence: { type: Number, required: true },
+    categories: { type: [String], default: [] },
+    summary: { type: String, default: "" },
+    model: { type: String, required: true },
+    inputs: { type: [String], default: [] },
+    ranAt: { type: Date, required: true },
+  },
+  { _id: false },
+);
+
 const ClipSchema = new Schema<IClip>(
   {
     title: { type: String, required: true, trim: true, maxlength: TITLE_MAX_LENGTH },
@@ -115,19 +128,7 @@ const ClipSchema = new Schema<IClip>(
       reviewedAt: { type: Date, default: null },
       rejectionReason: { type: String, default: null, maxlength: 500 },
     },
-    aiModeration: {
-      type: {
-        _id: false,
-        verdict: { type: String, enum: ["approve", "review", "reject"] },
-        confidence: Number,
-        categories: [String],
-        summary: String,
-        model: String,
-        inputs: [String],
-        ranAt: Date,
-      },
-      default: null,
-    },
+    aiModeration: { type: AiModerationSchema, default: null },
     aiModerationError: { type: String, default: null },
     approvedAt: { type: Date, default: null },
     voteCount: { type: Number, default: 0, min: 0 },

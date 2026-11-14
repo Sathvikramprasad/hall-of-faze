@@ -77,8 +77,12 @@ export async function POST(request: Request) {
   if (!thumbnail) issues.push({ field: "thumbnail", message: "A custom thumbnail is required." });
   else issues.push(...validateThumbnailDescriptor(thumbnail));
 
-  const challengeId = body.challengeId ?? null;
-  if (challengeId !== null && (typeof challengeId !== "string" || !CHALLENGE_ID_PATTERN.test(challengeId))) {
+  const rawChallengeId = body.challengeId ?? null;
+  const challengeId: string | null = typeof rawChallengeId === "string" ? rawChallengeId : null;
+  if (
+    rawChallengeId !== null &&
+    (typeof rawChallengeId !== "string" || !CHALLENGE_ID_PATTERN.test(rawChallengeId))
+  ) {
     issues.push({ field: "challengeId", message: "Invalid challenge." });
   }
   if (issues.length > 0 || !video || !thumbnail) {
