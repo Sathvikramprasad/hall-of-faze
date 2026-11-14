@@ -134,38 +134,34 @@ Runs only when `GEMINI_API_KEY` is set: from the **Run AI review** button, or au
 
 ## Environment variables
 
-Put these in `.env.local` (never commit it):
+Put these in `.env.local` (never commit it). The team bucket is on **Vultr Object Storage** (Atlanta, `atl2.vultrobjects.com`); get the keys privately from Ani.
 
 | Variable | Required | Example / notes |
 |---|---|---|
 | `MONGODB_URI` | yes | existing |
-| `S3_ENDPOINT` | yes | `https://<account>.r2.cloudflarestorage.com`, `https://s3.us-east-1.amazonaws.com`, `http://localhost:9000` (MinIO) |
-| `S3_REGION` | AWS: yes | `us-east-1`; R2: `auto` (default) |
-| `S3_BUCKET` | yes | `hall-of-faze-clips` (must be **private**) |
-| `S3_ACCESS_KEY_ID` | yes | key with Get/Put/Delete on the bucket (+ ListBucket so missing objects return 404) |
-| `S3_SECRET_ACCESS_KEY` | yes | |
-| `S3_FORCE_PATH_STYLE` | no | default `true`; set `false` for virtual-hosted AWS URLs |
-| `S3_SESSION_TOKEN` | no | temporary AWS credentials only |
+| `VULTR_S3_ENDPOINT` | yes | `atl2.vultrobjects.com` (scheme optional) |
+| `VULTR_S3_BUCKET` | yes | `hall-of-faze-clips` (must stay **private**) |
+| `VULTR_S3_ACCESS_KEY` | yes | from the Vultr dashboard → Object Storage → S3 Credentials |
+| `VULTR_S3_SECRET_KEY` | yes | same place |
+| `VULTR_S3_REGION` | no | default `us-east-1` (Vultr accepts it) |
 | `MODERATOR_ACCESS_KEY` | yes for moderation | 12+ random characters; temporary until shared auth roles land |
 | `GEMINI_API_KEY` | no | enables AI review |
 | `GEMINI_MODEL` | no | default `gemini-3.5-flash` |
 | `GEMINI_AUTO_REVIEW` | no | `true` to review every verified upload automatically |
+| `STORAGE_CORS_ORIGINS` | no | comma list used by `npm run storage:setup` (default `http://localhost:3000`) |
 
-### Bucket CORS (required for browser uploads and playback)
+The generic `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION` names also work (they win if both are set), so any S3-compatible provider can be used.
 
-The browser PUTs directly to the bucket, so allow your site's origins:
+### One-time bucket setup (CORS)
 
-```json
-[
-  {
-    "AllowedOrigins": ["http://localhost:3000", "https://<your-staging-domain>"],
-    "AllowedMethods": ["PUT", "GET", "HEAD"],
-    "AllowedHeaders": ["Content-Type"],
-    "ExposeHeaders": ["ETag", "Content-Length", "Content-Range"],
-    "MaxAgeSeconds": 3600
-  }
-]
+The browser uploads straight to the bucket and plays video from it, so the bucket needs a CORS rule. Vultr's dashboard has no CORS screen, so run:
+
+```bash
+npm run storage:setup                                            # allows http://localhost:3000
+npm run storage:setup -- http://localhost:3000 https://<staging-url>   # when staging exists
 ```
+
+It applies the rule, reads it back, does a write/read/delete round trip with your keys, and checks the bucket is private. Re-run it with every origin you need whenever the staging/production URL changes (each run replaces the rule).
 
 ## Test steps
 
@@ -173,6 +169,7 @@ Automated (no services needed):
 
 ```bash
 npm run test:media   # signing against AWS's published test vectors, validation, file-signature sniffing
+npm run storage:setup  # once: bucket CORS + key check
 npm run lint
 npm run build        # needs MONGODB_URI set (existing src/lib/mongodb.ts throws without it)
 ```

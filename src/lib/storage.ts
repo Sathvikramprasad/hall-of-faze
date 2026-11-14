@@ -39,12 +39,16 @@ export class StorageRequestError extends Error {
   }
 }
 
+/**
+ * Reads storage settings. Accepts the PRD's Vultr names (VULTR_S3_*) or the
+ * generic S3_* names; the generic name wins when both are set.
+ */
 export function getStorageConfig(env: NodeJS.ProcessEnv = process.env): StorageConfig {
   const required = {
-    S3_ENDPOINT: env.S3_ENDPOINT,
-    S3_BUCKET: env.S3_BUCKET,
-    S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID,
-    S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY,
+    S3_ENDPOINT: env.S3_ENDPOINT || env.VULTR_S3_ENDPOINT,
+    S3_BUCKET: env.S3_BUCKET || env.VULTR_S3_BUCKET,
+    S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID || env.VULTR_S3_ACCESS_KEY,
+    S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY || env.VULTR_S3_SECRET_KEY,
   };
   const missing = Object.entries(required)
     .filter(([, value]) => !value)
@@ -52,14 +56,19 @@ export function getStorageConfig(env: NodeJS.ProcessEnv = process.env): StorageC
   if (missing.length > 0) throw new StorageNotConfiguredError(missing);
 
   return {
-    endpoint: required.S3_ENDPOINT!.replace(/\/+$/, ""),
-    region: env.S3_REGION || "auto",
+    endpoint: withScheme(required.S3_ENDPOINT!).replace(/\/+$/, ""),
+    region: env.S3_REGION || env.VULTR_S3_REGION || "us-east-1",
     bucket: required.S3_BUCKET!,
     accessKeyId: required.S3_ACCESS_KEY_ID!,
     secretAccessKey: required.S3_SECRET_ACCESS_KEY!,
     sessionToken: env.S3_SESSION_TOKEN || undefined,
     forcePathStyle: env.S3_FORCE_PATH_STYLE !== "false",
   };
+}
+
+/** Vultr shows the hostname without a scheme (e.g. atl1.vultrobjects.com). */
+function withScheme(endpoint: string): string {
+  return /^https?:\/\//i.test(endpoint) ? endpoint : `https://${endpoint}`;
 }
 
 export function isStorageConfigured(env: NodeJS.ProcessEnv = process.env): boolean {

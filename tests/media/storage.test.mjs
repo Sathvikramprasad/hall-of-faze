@@ -68,3 +68,17 @@ test("object keys never contain user input", () => {
     thumbnailKey: "clips/65f0c0ffee/thumbnail.webp",
   });
 });
+
+test("accepts the PRD's VULTR_S3_* variable names and a bare hostname", async () => {
+  const { getStorageConfig } = await import("../../src/lib/storage.ts");
+  const config = getStorageConfig({
+    VULTR_S3_ENDPOINT: "atl2.vultrobjects.com",
+    VULTR_S3_BUCKET: "clips",
+    VULTR_S3_ACCESS_KEY: "AK",
+    VULTR_S3_SECRET_KEY: "SK",
+  });
+  assert.equal(config.endpoint, "https://atl2.vultrobjects.com");
+  assert.equal(config.bucket, "clips");
+  assert.equal(config.region, "us-east-1");
+  assert.equal(config.forcePathStyle, true);
+});
