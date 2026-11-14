@@ -3,8 +3,6 @@ import { fail, hasValidOrigin, ok, parseObject } from "@/lib/api";
 import { getCurrentUser, serializeUser } from "@/lib/auth";
 import { normalizeSocialLinks } from "@/lib/socials";
 
-export const runtime = "nodejs";
-
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request);

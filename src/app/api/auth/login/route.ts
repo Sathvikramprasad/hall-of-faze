@@ -4,8 +4,6 @@ import { fail, hasValidOrigin, ok, parseObject } from "@/lib/api";
 import { serializeUser, startSession, verifyPassword } from "@/lib/auth";
 import UserModel from "@/models/User";
 
-export const runtime = "nodejs";
-
 export async function POST(request: NextRequest) {
   if (!hasValidOrigin(request)) return fail(403, "FORBIDDEN", "Invalid request origin.");
   const body = await parseObject(request);

@@ -3,8 +3,6 @@ import { endSession } from "@/lib/auth";
 import { fail, hasValidOrigin, ok } from "@/lib/api";
 import { connectDB } from "@/lib/mongodb";
 
-export const runtime = "nodejs";
-
 export async function POST(request: NextRequest) {
   if (!hasValidOrigin(request)) return fail(403, "FORBIDDEN", "Invalid request origin.");
   try {
