@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:community": "node --experimental-strip-types --test \"tests/community/*.test.mts\"",
+    "seed:community": "node scripts/seed-community.mjs"
   },
   "dependencies": {
     "mongoose": "^9.12.1",
