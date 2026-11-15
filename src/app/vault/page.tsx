@@ -36,7 +36,7 @@ export default function VaultPage() {
           </div>
         </section>
 
-        <section aria-labelledby="members-heading" className="mt-20">
+        <section aria-labelledby="members-heading" className="mt-20 scroll-mt-24">
           <h2 id="members-heading" className="font-display text-3xl uppercase tracking-wide">
             Members
           </h2>

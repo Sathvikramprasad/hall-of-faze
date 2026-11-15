@@ -19,7 +19,7 @@ export function VaultTimeline() {
   return (
     <div className="lg:grid lg:grid-cols-[9rem_1fr] lg:gap-10">
       {/* Year jump list: horizontal scroller on mobile, sticky column on desktop */}
-      <nav aria-label="Jump to year" className="mb-8 lg:mb-0">
+      <nav aria-label="Vault sections" className="mb-8 lg:mb-0">
         <ol className="flex gap-2 overflow-x-auto pb-2 lg:sticky lg:top-24 lg:flex-col lg:gap-1 lg:overflow-visible">
           {VAULT_YEARS.map((year) =>
             yearsWithEntries.has(year) ? (
@@ -38,6 +38,14 @@ export function VaultTimeline() {
               </li>
             ),
           )}
+          <li>
+            <a
+              href="#members-heading"
+              className="block rounded-md px-3 py-1.5 font-mono text-sm font-semibold transition-colors hover:bg-accent-fill hover:text-white"
+            >
+              Members
+            </a>
+          </li>
         </ol>
       </nav>
 

@@ -212,7 +212,7 @@ export function HomeHero() {
       {/* Headline */}
       <h1
         id="home-hero-heading"
-        className="pointer-events-none absolute bottom-24 left-4 right-4 text-right font-display text-[clamp(1.5rem,6.5vw,3rem)] uppercase leading-[1.05] tracking-wide [text-shadow:0_4px_18px_rgba(0,0,0,0.95),0_2px_4px_#000] sm:left-1/3 lg:bottom-auto lg:left-auto lg:right-[4vw] lg:top-1/2 lg:-translate-y-1/2 lg:text-[clamp(2.75rem,4.1vw,4.75rem)]"
+        className="pointer-events-none absolute bottom-20 left-4 right-4 text-right font-display text-[clamp(1.35rem,5.6vw,2.6rem)] uppercase leading-[1.05] tracking-wide [text-shadow:0_4px_18px_rgba(0,0,0,0.95),0_2px_4px_#000] sm:bottom-16 sm:left-2/5 lg:bottom-14 lg:left-auto lg:right-[4vw] lg:max-w-[56rem] lg:text-[clamp(2.15rem,3.25vw,3.6rem)]"
       >
         <span className="sr-only">Hall of FaZe: </span>
         {HERO_HEADLINE.map((line) => (
