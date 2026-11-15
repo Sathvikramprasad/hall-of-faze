@@ -20,6 +20,7 @@ import {
   type ValidationIssue,
 } from "@/lib/clip-rules";
 import type { CreateClipResponse } from "@/lib/clip-types";
+import { getRemixMission, type RemixMission } from "@/lib/remix";
 
 type Phase = "idle" | "checking" | "uploading" | "verifying" | "done";
 type FieldErrors = Partial<Record<"title" | "description" | "video" | "thumbnail" | "form", string>>;
@@ -86,7 +87,13 @@ function issuesToErrors(issues: ValidationIssue[] = []): FieldErrors {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export default function UploadForm() {
+export default function UploadForm({
+  challengeId,
+  remixId,
+}: {
+  challengeId?: string;
+  remixId?: string;
+}) {
   const ids = { title: useId(), description: useId(), video: useId(), thumbnail: useId() };
 
   const [title, setTitle] = useState("");
@@ -99,6 +106,7 @@ export default function UploadForm() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [progress, setProgress] = useState({ video: 0, thumbnail: 0 });
   const [clipId, setClipId] = useState<string | null>(null);
+  const remixMission: RemixMission | null = getRemixMission(remixId ?? "");
 
   // Free the preview object URL when it is replaced or the form unmounts.
   useEffect(() => {
@@ -126,7 +134,21 @@ export default function UploadForm() {
     const seconds = await readVideoDuration(file);
     setVideoDuration(seconds);
     const durationIssues = validateDuration(seconds ?? undefined);
-    if (durationIssues.length) setErrors((e) => ({ ...e, video: durationIssues[0].message }));
+    if (durationIssues.length) {
+      setErrors((e) => ({ ...e, video: durationIssues[0].message }));
+    } else if (remixMission) {
+      const { minDurationSeconds, maxDurationSeconds, maxBytes } = remixMission.clipRules;
+      if (file.size > maxBytes) {
+        setErrors((e) => ({ ...e, video: `This remix must be ${formatBytes(maxBytes)} or smaller.` }));
+      } else if (seconds === null) {
+        setErrors((e) => ({ ...e, video: "We could not read this video's duration. Try an MP4 or WebM file." }));
+      } else if (seconds < minDurationSeconds || seconds > maxDurationSeconds) {
+        setErrors((e) => ({
+          ...e,
+          video: `This remix must be ${minDurationSeconds}–${maxDurationSeconds} seconds long.`,
+        }));
+      }
+    }
   }
 
   async function onThumbnailChange(file: File | null) {
@@ -156,6 +178,16 @@ export default function UploadForm() {
     }
     if (!video) next.video = "Choose a video file.";
     else if (errors.video) next.video = errors.video;
+    else if (remixMission && video.size > remixMission.clipRules.maxBytes) {
+      next.video = `This remix must be ${formatBytes(remixMission.clipRules.maxBytes)} or smaller.`;
+    } else if (
+      remixMission &&
+      (videoDuration === null ||
+        videoDuration < remixMission.clipRules.minDurationSeconds ||
+        videoDuration > remixMission.clipRules.maxDurationSeconds)
+    ) {
+      next.video = `This remix must be ${remixMission.clipRules.minDurationSeconds}–${remixMission.clipRules.maxDurationSeconds} seconds long.`;
+    }
     if (!thumbnail) next.thumbnail = "Choose a custom thumbnail.";
     else if (errors.thumbnail || !thumbnailPreview) next.thumbnail = errors.thumbnail ?? "Choose a valid thumbnail.";
     return next;
@@ -170,8 +202,6 @@ export default function UploadForm() {
 
     setPhase("checking");
     setProgress({ video: 0, thumbnail: 0 });
-    const challengeId = new URLSearchParams(window.location.search).get("challengeId");
-
     // 1. Create the (private) clip and get upload URLs.
     let created: CreateClipResponse;
     try {
@@ -276,10 +306,11 @@ export default function UploadForm() {
   if (phase === "done" && clipId) {
     return (
       <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-6" role="status">
-        <h2 className="text-xl font-semibold">Clip submitted for review</h2>
+        <h2 className="text-xl font-semibold">{remixMission ? "Your remix is in" : "Clip submitted for review"}</h2>
         <p className="mt-2 text-sm opacity-80">
-          Your clip is private until a moderator approves it. Once approved it appears in the public feed and
-          can receive votes.
+          {remixMission
+            ? "Gemini is checking the complete submission. A clearly safe clip can move forward automatically; anything uncertain goes to a moderator. FaZe DNA analysis begins after approval."
+            : "Your clip is private until a moderator approves it. Once approved it appears in the public feed and can receive votes."}
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link href={`/clips/${clipId}`} className="rounded-lg bg-amber-400 px-4 py-2 font-semibold text-black">
@@ -299,6 +330,19 @@ export default function UploadForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6" aria-busy={busy}>
+      {remixMission && (
+        <section className="rounded-xl border border-red-500/40 bg-red-500/10 p-5" aria-labelledby="remix-upload-heading">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-500">{remixMission.eyebrow}</p>
+          <h2 id="remix-upload-heading" className="mt-1 text-xl font-black">{remixMission.title}</h2>
+          <p className="mt-2 text-sm leading-6 opacity-80">{remixMission.prompt}</p>
+          <ul className="mt-3 grid gap-1 text-xs opacity-70 sm:grid-cols-2">
+            {remixMission.submissionGuide.map((guide) => (
+              <li key={guide}>• {guide}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {errors.form && (
         <div role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm">
           {errors.form}
@@ -361,7 +405,9 @@ export default function UploadForm() {
           className="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-amber-400 file:px-3 file:py-2 file:font-semibold file:text-black"
         />
         <p id={`${ids.video}-hint`} className="mt-1 text-xs opacity-60">
-          MP4, WebM, or MOV · up to {formatBytes(VIDEO_MAX_BYTES)} · up to {VIDEO_MAX_DURATION_SECONDS / 60} minutes
+          {remixMission
+            ? `MP4, WebM, or MOV · ${remixMission.clipRules.minDurationSeconds}–${remixMission.clipRules.maxDurationSeconds} seconds · up to ${formatBytes(remixMission.clipRules.maxBytes)}`
+            : `MP4, WebM, or MOV · up to ${formatBytes(VIDEO_MAX_BYTES)} · up to ${VIDEO_MAX_DURATION_SECONDS / 60} minutes`}
           {video && !errors.video && (
             <>
               {" "}
@@ -425,9 +471,15 @@ export default function UploadForm() {
               ? "Uploading…"
               : phase === "verifying"
                 ? "Verifying…"
-                : "Submit clip for review"}
+                : remixMission
+                  ? "Submit legacy remix"
+                  : "Submit clip for review"}
         </button>
-        <p className="text-xs opacity-60">Clips stay private until a moderator approves them.</p>
+        <p className="text-xs opacity-60">
+          {remixMission
+            ? "Gemini may clear high-confidence safe clips; uncertain clips stay private for moderator review."
+            : "Clips stay private until a moderator approves them."}
+        </p>
       </div>
     </form>
   );

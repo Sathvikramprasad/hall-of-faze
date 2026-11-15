@@ -199,10 +199,11 @@ function ReviewCard({
 }) {
   const reasonId = useId();
   const [reason, setReason] = useState("");
-  const [busy, setBusy] = useState<null | ModerationAction | "ai" | "delete">(null);
+  const [busy, setBusy] = useState<null | ModerationAction | "ai" | "dna" | "delete">(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [ai, setAi] = useState({ result: clip.aiModeration, error: clip.aiModerationError });
+  const [dna, setDna] = useState({ result: clip.fazeDna, error: clip.fazeDnaError });
 
   async function act(action: ModerationAction) {
     if (action === "reject" && !reason.trim()) {
@@ -267,6 +268,25 @@ function ReviewCard({
     }
   }
 
+  async function runDna() {
+    setBusy("dna");
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/clips/${clip.id}/faze-dna`, { method: "POST" });
+      if (!res.ok) {
+        const message = await errorMessage(res, "FaZe DNA analysis failed.");
+        setDna((previous) => ({ ...previous, error: message }));
+        return;
+      }
+      const { clip: updated } = (await res.json()) as { clip: ModeratorClip };
+      setDna({ result: updated.fazeDna, error: updated.fazeDnaError });
+    } catch {
+      setError("Could not reach the server.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const canPlay = clip.status !== "processing";
 
   return (
@@ -323,7 +343,7 @@ function ReviewCard({
 
         {(aiAvailable || ai.result || ai.error) && canPlay && (
           <section className="flex flex-col gap-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wide opacity-70">AI moderation (advisory)</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wide opacity-70">AI safety check</h3>
             {ai.result && (
               <div className={`rounded-lg border p-3 ${VERDICT_STYLE[ai.result.verdict]}`}>
                 <p className="font-semibold">
@@ -347,6 +367,27 @@ function ReviewCard({
                 {busy === "ai" ? "Asking Gemini…" : ai.result ? "Re-run AI review" : "Run AI review"}
               </button>
             )}
+          </section>
+        )}
+
+        {clip.status === "approved" && clip.remixMissionId && (
+          <section className="flex flex-col gap-2 rounded-lg border border-red-500/25 bg-red-500/5 p-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-red-500">FaZe DNA coaching</h3>
+            {dna.result && (
+              <div>
+                <p className="font-black text-[#c8ff3d]">Overall {dna.result.overallScore}/100</p>
+                <p className="mt-1 text-xs opacity-75">{dna.result.reaction}</p>
+              </div>
+            )}
+            {dna.error && <p className="text-xs text-red-600 dark:text-red-400">Analysis error: {dna.error}</p>}
+            <button
+              type="button"
+              onClick={runDna}
+              disabled={busy !== null}
+              className="self-start rounded-lg border border-current/20 px-3 py-1.5 disabled:opacity-50"
+            >
+              {busy === "dna" ? "Analyzing complete clip…" : dna.result ? "Re-run FaZe DNA" : "Generate FaZe DNA"}
+            </button>
           </section>
         )}
 

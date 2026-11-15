@@ -27,6 +27,11 @@ export default function ClipCard({ clip }: { clip: PublicClip }) {
             {duration}
           </span>
         )}
+        {clip.fazeDna && (
+          <span className="absolute left-2 top-2 rounded-full border border-[#c8ff3d]/50 bg-black/85 px-2.5 py-1 font-mono text-xs font-black text-[#c8ff3d] shadow-lg">
+            DNA {clip.fazeDna.overallScore}
+          </span>
+        )}
       </div>
       <div className="flex flex-col gap-1 p-3">
         <h3 className="line-clamp-2 font-semibold">{clip.title}</h3>

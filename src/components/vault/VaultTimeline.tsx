@@ -7,6 +7,7 @@ import {
   getMember,
   getTimelineByYear,
 } from "@/lib/vault/queries";
+import { getRemixMissionForVaultEntry } from "@/lib/remix";
 import type { VaultEntry, VaultStat } from "@/lib/vault/types";
 import { SourceList } from "./SourceList";
 import { VideoEmbed } from "./VideoEmbed";
@@ -97,6 +98,7 @@ function StatMarker({ stat }: { stat: VaultStat }) {
 }
 
 function TimelineEntry({ entry }: { entry: VaultEntry }) {
+  const remixMission = getRemixMissionForVaultEntry(entry.id);
   const members = (entry.memberSlugs ?? [])
     .map((slug) => getMember(slug))
     .filter((m) => m !== undefined);
@@ -143,6 +145,14 @@ function TimelineEntry({ entry }: { entry: VaultEntry }) {
           </p>
         )}
         <SourceList sources={entry.sources} className="mt-3" />
+        {remixMission && (
+          <Link
+            href={`/next-up/${remixMission.challengeSlug}#legacy-mission`}
+            className="mt-5 inline-flex rounded-full bg-accent-fill px-5 py-2.5 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-red-950/40 transition hover:scale-[1.03] focus-visible:scale-[1.03] motion-reduce:transition-none motion-reduce:hover:scale-100"
+          >
+            Remix this moment →
+          </Link>
+        )}
       </article>
     </li>
   );

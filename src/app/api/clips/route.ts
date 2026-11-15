@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/mongodb";
 import Clip from "@/models/Clip";
 import {
   validateDuration,
+  formatBytes,
   validateText,
   validateThumbnailDescriptor,
   validateVideoDescriptor,
@@ -26,6 +27,7 @@ import { hasValidOrigin } from "@/lib/api";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { getPublicChallenge } from "@/lib/community-data";
 import { isChallengeOpen } from "@/lib/community-rules";
+import { getRemixMissionForChallenge } from "@/lib/remix";
 
 const CHALLENGE_ID_PATTERN = /^[a-f0-9]{24}$/i;
 
@@ -105,6 +107,30 @@ export async function POST(request: NextRequest) {
         return apiError(422, "validation_failed", "This challenge is not accepting submissions.", [
           { field: "challengeId", message: "Choose an active challenge." },
         ]);
+      }
+      const mission = getRemixMissionForChallenge(challenge.slug);
+      if (mission) {
+        const missionIssues: ValidationIssue[] = [];
+        if (video.size > mission.clipRules.maxBytes) {
+          missionIssues.push({
+            field: "video",
+            message: `This remix must be ${formatBytes(mission.clipRules.maxBytes)} or smaller.`,
+          });
+        }
+        if (
+          typeof video.durationSeconds !== "number" ||
+          !Number.isFinite(video.durationSeconds) ||
+          video.durationSeconds < mission.clipRules.minDurationSeconds ||
+          video.durationSeconds > mission.clipRules.maxDurationSeconds
+        ) {
+          missionIssues.push({
+            field: "durationSeconds",
+            message: `This remix must be ${mission.clipRules.minDurationSeconds}–${mission.clipRules.maxDurationSeconds} seconds long.`,
+          });
+        }
+        if (missionIssues.length > 0) {
+          return apiError(422, "validation_failed", "This clip does not meet the remix requirements.", missionIssues);
+        }
       }
     }
     const rateLimit = await consumeRateLimit({

@@ -36,7 +36,10 @@ async function LeaderboardContent() {
               <span className="text-3xl font-black text-red-500">#{entry.rank}</span>
               <div>
                 <Link href={`/clips/${entry.clipId}`} className="font-bold text-white hover:text-red-400">{entry.title}</Link>
-                <p className="mt-1 text-sm text-zinc-500">Approved community entry</p>
+                <p className="mt-1 text-sm text-zinc-500">
+                  Approved community entry
+                  {entry.fazeDnaScore !== null ? ` · FaZe DNA ${entry.fazeDnaScore}` : ""}
+                </p>
               </div>
               <span className="font-black text-zinc-200">{entry.voteCount} votes</span>
             </li>

@@ -1,4 +1,4 @@
-import type { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 import { hasValidOrigin } from "@/lib/api";
 import { apiError, apiJson, handleRouteError, isClipId, readJsonBody } from "@/lib/clip-http";
 import { moderatorLabel } from "@/lib/clip-identity";
@@ -6,6 +6,9 @@ import { requireModerator } from "@/lib/clip-moderator";
 import { ClipTransitionError, toModeratorClip, transitionClip } from "@/lib/clips";
 import type { ClipStatus } from "@/lib/clip-rules";
 import type { ModerationAction } from "@/lib/clip-types";
+import { runFazeDnaAnalysis } from "@/lib/gemini-remix";
+
+export const maxDuration = 60;
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -43,6 +46,14 @@ export async function PATCH(request: NextRequest, { params }: Context) {
 
   try {
     const clip = await transitionClip(id, TARGET[action], moderatorLabel(viewer), reason || undefined);
+    if (action === "approve") {
+      // Public approval should not wait on Gemini. Non-remix clips return null.
+      after(() =>
+        runFazeDnaAnalysis(id).catch((error) =>
+          console.error("[clips] FaZe DNA analysis failed after moderator approval:", error),
+        ),
+      );
+    }
     return apiJson({ clip: toModeratorClip(clip) });
   } catch (error) {
     if (error instanceof ClipTransitionError) {

@@ -3,6 +3,7 @@ import { io } from "next/cache";
 import { Suspense } from "react";
 import { SponsorMark } from "@/components/sponsor/SponsorMark";
 import { listActiveChallenges } from "@/lib/community-data";
+import { getRemixMissionForChallenge } from "@/lib/remix";
 import { DEMO_SPONSOR_NAME } from "@/lib/sponsor";
 
 export const metadata = {
@@ -35,7 +36,12 @@ async function ChallengeList() {
 
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      {challenges.map((challenge) => (
+      {challenges.map((challenge) => {
+        const mission = getRemixMissionForChallenge(challenge.slug);
+        const title = mission
+          ? `${challenge.sponsorName ? `${challenge.sponsorName} ` : ""}${mission.challengeTitle}`
+          : challenge.displayTitle;
+        return (
         <article key={challenge.id} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl shadow-black/20">
           <div className="mb-4 flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.18em]">
             <span className="rounded-full bg-red-600/20 px-3 py-1 text-red-400">Active</span>
@@ -52,8 +58,8 @@ async function ChallengeList() {
               )}
             </p>
           ) : null}
-          <h2 className="text-2xl font-black tracking-tight text-white">{challenge.displayTitle}</h2>
-          <p className="mt-3 leading-7 text-zinc-300">{challenge.description}</p>
+          <h2 className="text-2xl font-black tracking-tight text-white">{title}</h2>
+          <p className="mt-3 leading-7 text-zinc-300">{mission?.description ?? challenge.description}</p>
           <dl className="mt-6 grid gap-4 border-t border-zinc-800 pt-5 text-sm sm:grid-cols-2">
             <div>
               <dt className="font-semibold text-zinc-500">Voting closes</dt>
@@ -61,7 +67,7 @@ async function ChallengeList() {
             </div>
             <div>
               <dt className="font-semibold text-zinc-500">Eligibility</dt>
-              <dd className="mt-1 text-zinc-200">{challenge.eligibilitySummary}</dd>
+              <dd className="mt-1 text-zinc-200">{mission?.eligibilitySummary ?? challenge.eligibilitySummary}</dd>
             </div>
             {challenge.prizes[0] ? (
               <div className="sm:col-span-2">
@@ -79,7 +85,8 @@ async function ChallengeList() {
             View challenge
           </Link>
         </article>
-      ))}
+        );
+      })}
     </div>
   );
 }

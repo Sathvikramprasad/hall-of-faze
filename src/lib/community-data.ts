@@ -43,6 +43,8 @@ export type LeaderboardEntry = {
   thumbnailUrl: string;
   videoUrl: string;
   approvedAt: string;
+  /** Coaching only; rank remains determined exclusively by valid votes. */
+  fazeDnaScore: number | null;
 };
 
 type ClipRecord = {
@@ -52,6 +54,7 @@ type ClipRecord = {
   title: string;
   status: string;
   approvedAt: Date | null;
+  fazeDna?: { overallScore?: number } | null;
 };
 
 export class VoteValidationError extends Error {
@@ -133,6 +136,7 @@ export async function getChallengeLeaderboard(
       title: 1,
       status: 1,
       approvedAt: 1,
+      fazeDna: 1,
     })
     .limit(200)
     .toArray();
@@ -158,6 +162,8 @@ export async function getChallengeLeaderboard(
         thumbnailUrl: `/api/clips/${clipId}/media/thumbnail`,
         videoUrl: `/api/clips/${clipId}/media/video`,
         approvedAt: clip.approvedAt.toISOString(),
+        fazeDnaScore:
+          typeof clip.fazeDna?.overallScore === "number" ? clip.fazeDna.overallScore : null,
       };
     });
 

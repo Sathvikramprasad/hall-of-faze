@@ -7,7 +7,16 @@ export const metadata: Metadata = {
   description: "Submit a clip with a custom thumbnail for review.",
 };
 
-export default function UploadPage() {
+function first(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function UploadPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ challengeId?: string | string[]; remix?: string | string[] }>;
+}) {
+  const params = await searchParams;
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
       <nav className="mb-6 text-sm">
@@ -19,7 +28,7 @@ export default function UploadPage() {
       <p className="mt-2 mb-8 opacity-70">
         Add a title, your video and a custom thumbnail. A moderator reviews every clip before it goes public.
       </p>
-      <UploadForm />
+      <UploadForm challengeId={first(params.challengeId)} remixId={first(params.remix)} />
     </main>
   );
 }
