@@ -324,14 +324,22 @@ export async function getTwitchPulse(): Promise<TwitchPulse> {
 
   const token = await getTwitchToken(clientId, clientSecret);
   const teamName = process.env.TWITCH_TEAM_NAME?.trim().toLowerCase() || "faze";
-  const teamData = await twitchGet<TwitchTeamResponse>(
-    `/teams?${new URLSearchParams({ name: teamName })}`,
-    clientId,
-    token,
-    TWITCH_DIRECTORY_REVALIDATE_SECONDS,
-    "Twitch team lookup",
-  );
-  const team = teamData.data?.[0];
+  let team: NonNullable<TwitchTeamResponse["data"]>[number] | undefined;
+  try {
+    const teamData = await twitchGet<TwitchTeamResponse>(
+      `/teams?${new URLSearchParams({ name: teamName })}`,
+      clientId,
+      token,
+      TWITCH_DIRECTORY_REVALIDATE_SECONDS,
+      "Twitch team lookup",
+    );
+    team = teamData.data?.[0];
+  } catch (error) {
+    // A Twitch team can be renamed or removed independently of its channels.
+    // Keep the official FaZe channel working and let TWITCH_CHANNELS provide
+    // additional creators instead of failing the entire provider.
+    console.warn("[live-pulse] Twitch team directory unavailable; using channel fallback:", error);
+  }
   const configuredLogins = (process.env.TWITCH_CHANNELS ?? "").split(",");
   const logins = normalizeTwitchLogins([
     "faze",
