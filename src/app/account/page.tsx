@@ -8,15 +8,20 @@ export const metadata: Metadata = {
   description: "Sign in, manage your profile and see every clip you've submitted to Hall of FaZe challenges.",
 };
 
-type SearchParams = Promise<{ next?: string | string[] }>;
+type SearchParams = Promise<{
+  next?: string | string[];
+  mode?: string | string[];
+}>;
 
 async function AccountContent({ searchParams }: { searchParams: SearchParams }) {
-  const nextValue = (await searchParams).next;
+  const params = await searchParams;
+  const nextValue = params.next;
+  const modeValue = Array.isArray(params.mode) ? params.mode[0] : params.mode;
   const nextPath = safeAuthReturnPath(
     typeof nextValue === "string" ? nextValue : Array.isArray(nextValue) ? nextValue[0] : null,
   );
 
-  return <AccountPanel nextPath={nextPath} />;
+  return <AccountPanel nextPath={nextPath} initialMode={modeValue === "register" ? "register" : "login"} />;
 }
 
 export default function AccountPage({ searchParams }: { searchParams: SearchParams }) {

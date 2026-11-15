@@ -260,7 +260,7 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
 
 export default function ChallengePage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <main className="min-h-screen bg-black px-5 py-12 text-white sm:px-8">
+    <main className="min-h-screen px-5 py-12 text-white sm:px-8">
       <div className="mx-auto max-w-6xl">
         <Link href="/next-up" className="text-sm font-bold text-zinc-400 hover:text-white">← All challenges</Link>
         <div className="mt-8">

@@ -2,6 +2,10 @@ import type { MemberProfile } from "./types";
 
 // Curated member profiles for the Vault.
 //
+// `channels` lists only channels confirmed to be the member's own (YouTube
+// channel ids from vidIQ / Social Blade, Twitch logins from Streams Charts).
+// They power live status and current YouTube stats on the profile page.
+//
 // `videos` is intentionally empty: add historical clips only when you can
 // credit the channel that uploaded them (the profile page renders the credit
 // line under each embed). Use the YouTube id, not the full URL.
@@ -54,6 +58,7 @@ export const memberProfiles: MemberProfile[] = [
     role: "Longtime leader; CEO after the GameSquare deal",
     bio: "Long one of FaZe's most visible figures. He returned as CEO when GameSquare bought the company and led the 2024 roster reboot.",
     sources: [tubefilterGameSquare, wikipedia],
+    channels: { twitch: "fazebanks", youtubeHandle: "@bankshasbank" },
     videos: [],
   },
   {
@@ -78,6 +83,7 @@ export const memberProfiles: MemberProfile[] = [
         url: "https://investors.gamesquare.com/news/news-details/2024/GameSquare-Announces-Completion-of-Faze-Clan-Acquisition/",
       },
     ],
+    channels: { twitch: "fazeapex", youtubeChannelId: "UCa7507M549AiDKN8J89tn5A" },
     videos: [],
   },
   {
@@ -94,6 +100,7 @@ export const memberProfiles: MemberProfile[] = [
         url: "https://www.complex.com/pop-culture/a/taffeta-chime/faze-clan-streaming-twitch-youtube-explainer",
       },
     ],
+    channels: { twitch: "rug", youtubeChannelId: "UCilwZiBBfI9X6yiZRzWty8Q" },
     videos: [],
   },
   {
@@ -117,6 +124,7 @@ export const memberProfiles: MemberProfile[] = [
         url: "https://www.sportskeeda.com/esports/how-faze-swagg-become-popular",
       },
     ],
+    channels: { twitch: "swagg", youtubeChannelId: "UCW1CGYCjfKhNLGp_Os1g_Pg" },
     videos: [],
   },
   {
@@ -169,6 +177,7 @@ export const memberProfiles: MemberProfile[] = [
         url: "https://www.ibtimes.co.uk/faze-clan-hit-major-exits-stable-ronaldo-silky-lacy-jasontheween-leave-1765943",
       },
     ],
+    channels: { twitch: "jasontheween", youtubeChannelId: "UCxoKaKMzulp6sfQGOhNJnzQ" },
     videos: [],
   },
 ];

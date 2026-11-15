@@ -58,7 +58,16 @@ export async function PATCH(request: NextRequest) {
     const user = await getCurrentUser(request);
     if (!user) return fail(401, "UNAUTHENTICATED", "Sign in to continue.");
     if (displayName !== undefined) user.displayName = displayName;
-    if (socialLinks !== undefined) user.socialLinks = socialLinks;
+    if (socialLinks !== undefined) {
+      // A verified channel's link is set by Connect Twitch / YouTube; disconnect first to change it.
+      for (const platform of ["twitch", "youtube"] as const) {
+        if (user.connections?.[platform] && (socialLinks[platform] ?? null) !== (user.socialLinks?.[platform] ?? null)) {
+          const name = platform === "twitch" ? "Twitch" : "YouTube";
+          return fail(409, "CONFLICT", `Your ${name} link comes from your verified channel. Disconnect ${name} to change it.`);
+        }
+      }
+      user.socialLinks = socialLinks;
+    }
     await user.save();
     return ok({ user: serializeUser(user) });
   } catch (error) {

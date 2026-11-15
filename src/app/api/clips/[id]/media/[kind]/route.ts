@@ -11,6 +11,9 @@ type Context = { params: Promise<{ id: string; kind: string }> };
  * Access-checked redirect to a short-lived signed storage URL. The bucket stays
  * private: processing / pending / rejected media is only reachable by the
  * uploader (after verification) and moderators.
+ *
+ * Clips entered by Twitch / YouTube link have nothing in storage: after the
+ * same access check, they redirect to the platform's thumbnail and clip page.
  */
 export async function GET(_request: Request, { params }: Context) {
   const { id, kind } = await params;
@@ -24,7 +27,17 @@ export async function GET(_request: Request, { params }: Context) {
     }
     if (!clip || !canViewClip(clip, viewer)) return apiError(404, "not_found", "Not found.");
 
+    if (clip.source) {
+      const target = kind === "video" ? clip.source.url : clip.source.thumbnailUrl;
+      if (!target) return apiError(404, "not_found", "Not found.");
+      return NextResponse.redirect(target, {
+        status: 302,
+        headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" },
+      });
+    }
+
     const media = kind === "video" ? clip.video : clip.thumbnail;
+    if (!media?.key) return apiError(404, "not_found", "Not found.");
     const ttl = kind === "video" ? VIDEO_URL_TTL_SECONDS : THUMBNAIL_URL_TTL_SECONDS;
     const signed = createDownloadUrl(media.key, ttl, media.contentType);
 

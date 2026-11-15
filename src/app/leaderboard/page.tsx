@@ -52,7 +52,7 @@ async function LeaderboardContent() {
 
 export default function LeaderboardPage() {
   return (
-    <main className="min-h-screen bg-black px-5 py-16 text-white sm:px-8">
+    <main className="min-h-screen px-5 py-16 text-white sm:px-8">
       <div className="mx-auto max-w-4xl">
         <p className="text-sm font-bold uppercase tracking-[0.3em] text-red-500">Hall of FaZe rankings</p>
         <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">Monthly Top 3</h1>

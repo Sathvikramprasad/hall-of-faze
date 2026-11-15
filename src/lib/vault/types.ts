@@ -64,6 +64,12 @@ export type MemberProfile = {
   /** Gamer tag as commonly written, e.g. "FaZe Banks". */
   handle: string;
   realName?: string;
+  /**
+   * Profile photo under public/, e.g. "/vault/members/swagg.webp" (square, 256px+).
+   * Only use images you have permission to publish. Without one, cards show the
+   * member's initial on FaZe camo.
+   */
+  photo?: string;
   /** Short role description, e.g. "Co-founder". */
   role: string;
   /** Free-text era, e.g. "2010–" or "2024–2025". */
@@ -71,6 +77,12 @@ export type MemberProfile = {
   bio: string;
   sources: [SourceLink, ...SourceLink[]];
   videos: VideoEmbed[];
+  /**
+   * Their own channels, for live status and current YouTube stats. Only add
+   * channels you've confirmed belong to them: a YouTube channel id (UC…) or
+   * @handle, and a Twitch login.
+   */
+  channels?: { twitch?: string; youtubeChannelId?: string; youtubeHandle?: string };
 };
 
 export type MonthlyTop3Entry = {

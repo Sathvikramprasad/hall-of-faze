@@ -8,6 +8,7 @@
 import { NextResponse } from "next/server";
 import { isValidObjectId } from "mongoose";
 import { StorageNotConfiguredError, StorageRequestError } from "@/lib/storage";
+import { ExternalServiceError } from "@/lib/external-api";
 import type { ValidationIssue } from "@/lib/clip-rules";
 
 export type ApiErrorCode =
@@ -22,6 +23,8 @@ export type ApiErrorCode =
   | "invalid_media"
   | "storage_not_configured"
   | "storage_error"
+  | "service_not_configured"
+  | "service_unavailable"
   | "ai_not_configured"
   | "ai_error"
   | "internal_error";
@@ -72,6 +75,15 @@ export function handleRouteError(error: unknown, context: string) {
   if (error instanceof StorageRequestError) {
     console.error(`[clips] ${context}:`, error.message);
     return apiError(502, "storage_error", "Clip storage is temporarily unavailable. Try again.");
+  }
+  if (error instanceof ExternalServiceError) {
+    // Twitch / YouTube lookups: the messages are written for users.
+    if (error.kind === "not_configured") {
+      console.error(`[clips] ${context}:`, error.message);
+      return apiError(503, "service_not_configured", error.message);
+    }
+    if (error.kind === "unavailable") return apiError(502, "service_unavailable", error.message);
+    return apiError(422, "validation_failed", error.message, [{ field: "url", message: error.message }]);
   }
   console.error(`[clips] ${context}:`, error);
   return apiError(500, "internal_error", "Something went wrong. Try again.");
