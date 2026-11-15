@@ -1,7 +1,8 @@
 import mongoose, { Types } from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { isChallengeOpen, isVotingRoundKey, rankLeaderboardEntries } from "@/lib/community-rules";
-import Challenge, { type IChallenge } from "@/models/Challenge";
+import Challenge, { type ChallengePrize, type IChallenge } from "@/models/Challenge";
+import { sponsoredTitle } from "@/lib/sponsor";
 import Vote from "@/models/Vote";
 import { isClipVoteEligible } from "@/lib/clips";
 
@@ -13,12 +14,16 @@ export type PublicChallenge = {
   id: string;
   slug: string;
   title: string;
+  /** Title shown to users; sponsored challenges are named after their sponsor. */
+  displayTitle: string;
   description: string;
   gameIds: string[];
   rules: string[];
   eligibilitySummary: string;
   prizeSummary: string;
   sponsorName: string | null;
+  prizes: ChallengePrize[];
+  howToWin: string[];
   selectionPolicy: "community_vote";
   status: IChallenge["status"];
   roundKey: string;
@@ -64,12 +69,15 @@ function toPublicChallenge(challenge: LeanChallenge): PublicChallenge {
     id: challenge._id.toHexString(),
     slug: challenge.slug,
     title: challenge.title,
+    displayTitle: sponsoredTitle({ title: challenge.title, sponsorName: challenge.sponsorName ?? null }),
     description: challenge.description,
     gameIds: challenge.gameIds ?? [],
     rules: challenge.rules ?? [],
     eligibilitySummary: challenge.eligibilitySummary,
     prizeSummary: challenge.prizeSummary ?? "",
     sponsorName: challenge.sponsorName ?? null,
+    prizes: (challenge.prizes ?? []).map(({ place, reward }) => ({ place, reward })),
+    howToWin: challenge.howToWin ?? [],
     selectionPolicy: challenge.selectionPolicy,
     status: challenge.status,
     roundKey: challenge.roundKey,

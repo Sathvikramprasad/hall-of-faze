@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { io } from "next/cache";
 import { Suspense } from "react";
+import { SponsorMark } from "@/components/sponsor/SponsorMark";
 import { listActiveChallenges } from "@/lib/community-data";
+import { DEMO_SPONSOR_NAME } from "@/lib/sponsor";
 
 export const metadata = {
   title: "Next Up Challenges · Hall of FaZe",
@@ -39,7 +41,18 @@ async function ChallengeList() {
             <span className="rounded-full bg-red-600/20 px-3 py-1 text-red-400">Active</span>
             <span className="text-zinc-500">Round {challenge.roundKey}</span>
           </div>
-          <h2 className="text-2xl font-black tracking-tight text-white">{challenge.title}</h2>
+          {challenge.sponsorName ? (
+            <p className="mb-2 flex items-center gap-2 text-sm text-zinc-300">
+              <SponsorMark className="h-4 w-4" />
+              Presented by <strong className="text-white">{challenge.sponsorName}</strong>
+              {challenge.sponsorName === DEMO_SPONSOR_NAME && (
+                <span className="rounded-full border border-white/20 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
+                  Demo
+                </span>
+              )}
+            </p>
+          ) : null}
+          <h2 className="text-2xl font-black tracking-tight text-white">{challenge.displayTitle}</h2>
           <p className="mt-3 leading-7 text-zinc-300">{challenge.description}</p>
           <dl className="mt-6 grid gap-4 border-t border-zinc-800 pt-5 text-sm sm:grid-cols-2">
             <div>
@@ -50,6 +63,14 @@ async function ChallengeList() {
               <dt className="font-semibold text-zinc-500">Eligibility</dt>
               <dd className="mt-1 text-zinc-200">{challenge.eligibilitySummary}</dd>
             </div>
+            {challenge.prizes[0] ? (
+              <div className="sm:col-span-2">
+                <dt className="font-semibold text-zinc-500">Top prize</dt>
+                <dd className="mt-1 text-zinc-200">
+                  <span className="font-bold text-[#c8ff3d]">{challenge.prizes[0].place}:</span> {challenge.prizes[0].reward}
+                </dd>
+              </div>
+            ) : null}
           </dl>
           <Link
             href={`/next-up/${challenge.id}`}

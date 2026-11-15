@@ -36,7 +36,7 @@ export async function getMonthlyTop3(): Promise<MonthlyTop3> {
         rank: (index + 1) as 1 | 2 | 3,
         title: entry.title,
         creator: names.get(entry.uploaderId) ?? "Community member",
-        category: challenge.title,
+        category: challenge.displayTitle,
         votes: entry.voteCount,
         href: `/clips/${entry.clipId}`,
       })),
