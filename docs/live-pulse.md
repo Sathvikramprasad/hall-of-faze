@@ -6,6 +6,7 @@ Live Pulse combines official YouTube channel activity with the official FaZe Twi
 
 - YouTube: resolves the channel's uploads playlist, then loads the six newest public uploads and channel statistics.
 - Twitch: obtains a server-to-server app token, resolves the `faze` team, checks its channels for live streams, and loads top clips for offline discovery.
+- The built-in current lineup tracks `faze`, `zoomaa`, `swagg`, `kaysan`, `nickmercs`, `booya`, `faxuty`, and `mongraal`. It was reviewed against FaZe's official People and esports pages on 2026-11-15.
 - Credentials are used only in the server aggregation module. They are never returned to the browser.
 - A failure from one provider does not prevent the other provider or the page shell from rendering.
 
@@ -18,7 +19,7 @@ Live Pulse combines official YouTube channel activity with the official FaZe Twi
 | `TWITCH_CLIENT_SECRET` | yes | Secret from the same confidential Twitch application. |
 | `YOUTUBE_CHANNEL_HANDLE` | no | Defaults to `@FaZeClan`. |
 | `TWITCH_TEAM_NAME` | no | Defaults to `faze`. |
-| `TWITCH_CHANNELS` | no | Comma-separated extra Twitch logins; useful for creators not present in the team response. |
+| `TWITCH_CHANNELS` | no | Comma-separated extra Twitch logins; combined with the built-in lineup and team response, deduplicated, up to 24 channels. |
 
 Set the three required variables for Development, Preview, and Production in Vercel, then redeploy. Do not commit them to the repository.
 

@@ -3,6 +3,7 @@ import test from "node:test";
 
 const utilitiesUrl = new URL("../../src/lib/live-pulse-utils.ts", import.meta.url).href;
 const {
+  DEFAULT_FAZE_TWITCH_LOGINS,
   normalizeTwitchLogins,
   selectYouTubeThumbnail,
   twitchStreamThumbnail,
@@ -30,21 +31,20 @@ test("turns Twitch's thumbnail template into a displayable image URL", () => {
 });
 
 test("normalizes, validates, deduplicates, and caps Twitch channel logins", () => {
+  const extraLogins = Array.from({ length: 30 }, (_, index) => `creator_${index}`);
   assert.deepEqual(
     normalizeTwitchLogins([
       " FaZe ",
       "FAZE",
       "valid_name",
       "bad-name",
-      "one",
-      "two",
-      "three",
-      "four",
-      "five",
-      "six",
-      "seven",
-      "ignored_after_cap",
+      ...extraLogins,
     ]),
-    ["faze", "valid_name", "one", "two", "three", "four", "five", "six"],
+    ["faze", "valid_name", ...extraLogins.slice(0, 22)],
   );
+});
+
+test("ships a deduplicated current FaZe Twitch lineup", () => {
+  assert.equal(DEFAULT_FAZE_TWITCH_LOGINS.length, 8);
+  assert.deepEqual(normalizeTwitchLogins([...DEFAULT_FAZE_TWITCH_LOGINS]), [...DEFAULT_FAZE_TWITCH_LOGINS]);
 });

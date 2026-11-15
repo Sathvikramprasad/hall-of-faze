@@ -1,5 +1,6 @@
 import "server-only";
 import {
+  DEFAULT_FAZE_TWITCH_LOGINS,
   normalizeTwitchLogins,
   selectYouTubeThumbnail,
   twitchStreamThumbnail,
@@ -342,7 +343,7 @@ export async function getTwitchPulse(): Promise<TwitchPulse> {
   }
   const configuredLogins = (process.env.TWITCH_CHANNELS ?? "").split(",");
   const logins = normalizeTwitchLogins([
-    "faze",
+    ...DEFAULT_FAZE_TWITCH_LOGINS,
     ...(team?.users?.map((user) => user.user_login ?? "") ?? []),
     ...configuredLogins,
   ]);
@@ -383,7 +384,7 @@ export async function getTwitchPulse(): Promise<TwitchPulse> {
   }
   streams.sort((a, b) => b.viewerCount - a.viewerCount);
 
-  const clipRequests = (usersData.data ?? []).slice(0, 5).flatMap((user) =>
+  const clipRequests = (usersData.data ?? []).slice(0, 8).flatMap((user) =>
     user.id
       ? [
           twitchGet<TwitchClipsResponse>(
