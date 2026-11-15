@@ -6,6 +6,7 @@ import { announceAuthChange } from "@/lib/client-auth";
 import type { AccountUser } from "@/types";
 import ChannelsSection from "@/components/profile/ChannelsSection";
 import MyClips from "@/components/profile/MyClips";
+import MmrPanel from "@/components/profile/MmrPanel";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ResetPasswordForm from "@/components/profile/ResetPasswordForm";
 import SecuritySection from "@/components/profile/SecuritySection";
@@ -140,10 +141,11 @@ export default function AccountPanel({
         <div className="flex flex-col gap-6">
           <ProfileHeader user={user} onUserChange={setUser} onSignOut={signOut} signingOut={busy} />
           <ChannelsSection user={user} onUserChange={setUser} />
+          <MmrPanel />
           <MyClips />
           <SecuritySection email={user.email} />
           {user.role === "moderator" && (
-            <a href="/admin/clips" className="self-start rounded-lg border border-white/20 px-4 py-2 text-sm">Open moderation</a>
+            <div className="flex gap-3"><a href="/admin/mmr" className="rounded-lg border border-white/20 px-4 py-2 text-sm">Manage challenge rankings</a><a href="/admin/clips" className="self-start rounded-lg border border-white/20 px-4 py-2 text-sm">Open moderation</a></div>
           )}
         </div>
       </Shell>

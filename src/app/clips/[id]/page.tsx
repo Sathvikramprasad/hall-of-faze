@@ -59,6 +59,7 @@ async function ClipDetail({ params }: { params: Promise<{ id: string }> }) {
       )}
 
       <header>
+        {clip.status === "approved" && <Link href={`/players/${doc.uploaderId}`} className="mb-2 block text-sm text-red-400">View player profile and rank →</Link>}
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{clip.title}</h1>
         {clip.source && (
           <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">

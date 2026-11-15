@@ -3,6 +3,7 @@ import Link from "next/link";
 import { io } from "next/cache";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import MmrStandings from "@/components/community/MmrStandings";
 import VoteButton from "@/components/community/VoteButton";
 import { SponsorMark } from "@/components/sponsor/SponsorMark";
 import { VideoEmbed } from "@/components/vault/VideoEmbed";
@@ -229,6 +230,7 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
                     <h3 className="font-bold text-white">{entry.title}</h3>
                     <span className="text-sm font-black text-red-500">#{entry.rank}</span>
                   </div>
+                  <Link href={`/players/${entry.uploaderId}`} className="mt-2 block text-sm text-red-400">Player profile and rank →</Link>
                   <div className="mt-5">
                     <VoteButton
                       clipId={entry.clipId}
@@ -243,6 +245,7 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
         )}
       </section>
 
+      <MmrStandings challengeId={challenge.id} />
       <section className="border-t border-zinc-800 pt-10">
         <h2 className="text-2xl font-black">Official rules</h2>
         <ol className="mt-5 grid gap-3 text-zinc-300">

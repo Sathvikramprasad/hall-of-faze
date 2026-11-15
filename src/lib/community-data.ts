@@ -1,8 +1,9 @@
-import mongoose, { Types } from "mongoose";
+import mongoose, { Types, type ClientSession } from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { isChallengeOpen, isVotingRoundKey, rankLeaderboardEntries } from "@/lib/community-rules";
 import Challenge, { type ChallengePrize, type IChallenge } from "@/models/Challenge";
 import { sponsoredTitle } from "@/lib/sponsor";
+import MmrSettlement from "@/models/MmrSettlement";
 import Vote from "@/models/Vote";
 import { isClipVoteEligible } from "@/lib/clips";
 
@@ -119,16 +120,18 @@ export async function getChallengeLeaderboard(
   challengeId: string,
   roundKey: string,
   limit = 3,
+  snapshot?: { session: ClientSession; startsAt: Date; endsAt: Date },
 ): Promise<LeaderboardEntry[]> {
   if (!OBJECT_ID_PATTERN.test(challengeId) || !isVotingRoundKey(roundKey)) return [];
+  challengeId = challengeId.toLowerCase();
   await connectDB();
 
   const clips = await mongoose.connection.collection<ClipRecord>("clips")
     .find({
       challengeId,
       status: "approved",
-      approvedAt: { $ne: null },
-    })
+      approvedAt: snapshot ? { $gte: snapshot.startsAt, $lt: snapshot.endsAt } : { $ne: null },
+    }, { session: snapshot?.session })
     .project<ClipRecord>({
       _id: 1,
       challengeId: 1,
@@ -138,15 +141,14 @@ export async function getChallengeLeaderboard(
       approvedAt: 1,
       fazeDna: 1,
     })
-    .limit(200)
     .toArray();
   if (clips.length === 0) return [];
 
   const clipIds = clips.map((clip) => clip._id.toHexString());
   const counts = await Vote.aggregate<{ _id: string; voteCount: number }>([
-    { $match: { challengeId, votingRound: roundKey, clipId: { $in: clipIds } } },
+    { $match: { challengeId, votingRound: roundKey, clipId: { $in: clipIds }, ...(snapshot ? { createdAt: { $gte: snapshot.startsAt, $lt: snapshot.endsAt } } : {}) } },
     { $group: { _id: "$clipId", voteCount: { $sum: 1 } } },
-  ]).exec();
+  ]).session(snapshot?.session ?? null).exec();
   const countByClip = new Map(counts.map((row) => [row._id, row.voteCount]));
 
   const entries = clips
@@ -167,7 +169,7 @@ export async function getChallengeLeaderboard(
       };
     });
 
-  return rankLeaderboardEntries(entries).slice(0, Math.min(Math.max(1, limit), 50));
+  return rankLeaderboardEntries(entries).slice(0, Math.max(1, limit));
 }
 
 export async function castVote(input: {
@@ -184,36 +186,33 @@ export async function castVote(input: {
     throw new VoteValidationError("invalid_input", "Vote identifiers must be valid IDs.");
   }
 
+  input = { ...input, voterId: input.voterId.toLowerCase(), clipId: input.clipId.toLowerCase(), challengeId: input.challengeId.toLowerCase() };
   await connectDB();
-  const challenge = await Challenge.findById(input.challengeId).lean<LeanChallenge>().exec();
-  if (!challenge) throw new VoteValidationError("not_found", "Challenge not found.");
-  if (!isChallengeOpen(challenge, input.at ?? new Date())) {
-    throw new VoteValidationError("challenge_closed", "This challenge is not accepting votes.");
-  }
-
-  if (!(await isClipVoteEligible(input.clipId, input.challengeId))) {
-    throw new VoteValidationError(
-      "clip_ineligible",
-      "Only approved clips entered in this challenge can receive votes.",
-    );
-  }
-
+  await Promise.all([Vote.init(), MmrSettlement.init()]);
   try {
-    await Vote.init();
-    const vote = await Vote.create({
-      voterId: input.voterId,
-      clipId: input.clipId,
-      challengeId: input.challengeId,
-      votingRound: challenge.roundKey,
+    return await mongoose.connection.transaction(async (session) => {
+      const challenge = await Challenge.findById(input.challengeId).session(session).lean<LeanChallenge>().exec();
+      if (!challenge) throw new VoteValidationError("not_found", "Challenge not found.");
+      const at = input.at ?? new Date();
+      if (!isChallengeOpen(challenge, at) || await MmrSettlement.exists({ challengeId: input.challengeId, roundKey: challenge.roundKey }).session(session)) {
+        throw new VoteValidationError("challenge_closed", "This challenge is not accepting votes.");
+      }
+      if (!(await isClipVoteEligible(input.clipId, input.challengeId))) {
+        throw new VoteValidationError("clip_ineligible", "Only approved clips entered in this challenge can receive votes.");
+      }
+      // Shares a write fence with settlement: an in-flight vote cannot commit
+      // behind a finalized snapshot. Transaction retries recheck the deadline.
+      await Challenge.updateOne({ _id: challenge._id }, { $inc: { mmrSettlementVersion: 1 } }, { session });
+      const [vote] = await Vote.create([{
+        voterId: input.voterId, clipId: input.clipId, challengeId: input.challengeId,
+        votingRound: challenge.roundKey, createdAt: at,
+      }], { session });
+      return {
+        id: vote._id.toHexString(), voterId: vote.voterId, clipId: vote.clipId,
+        challengeId: vote.challengeId, votingRound: vote.votingRound,
+        createdAt: vote.createdAt.toISOString(),
+      };
     });
-    return {
-      id: vote._id.toHexString(),
-      voterId: vote.voterId,
-      clipId: vote.clipId,
-      challengeId: vote.challengeId,
-      votingRound: vote.votingRound,
-      createdAt: vote.createdAt.toISOString(),
-    };
   } catch (error) {
     if (error !== null && typeof error === "object" && "code" in error && error.code === 11000) {
       throw new VoteValidationError(
