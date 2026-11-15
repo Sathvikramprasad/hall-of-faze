@@ -1,4 +1,20 @@
-const MAX_TRACKED_TWITCH_CHANNELS = 8;
+const MAX_TRACKED_TWITCH_CHANNELS = 24;
+
+/**
+ * Active Twitch channels for creators listed on FaZe's official People and
+ * esports pages. Reviewed 2026-11-15. The API team response and the optional
+ * TWITCH_CHANNELS variable can extend this list without duplicating entries.
+ */
+export const DEFAULT_FAZE_TWITCH_LOGINS = [
+  "faze",
+  "zoomaa",
+  "swagg",
+  "kaysan",
+  "nickmercs",
+  "booya",
+  "faxuty",
+  "mongraal",
+] as const;
 
 export type YouTubeThumbnail = { url?: string };
 
