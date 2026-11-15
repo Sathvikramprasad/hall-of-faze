@@ -19,6 +19,9 @@ export async function GET(_request: Request, { params }: Context) {
   }
   try {
     const [clip, viewer] = await Promise.all([findClipById(id), getViewer()]);
+    if (kind === "video" && !viewer.userId) {
+      return apiError(401, "unauthorized", "Sign in to watch clips.");
+    }
     if (!clip || !canViewClip(clip, viewer)) return apiError(404, "not_found", "Not found.");
 
     const media = kind === "video" ? clip.video : clip.thumbnail;

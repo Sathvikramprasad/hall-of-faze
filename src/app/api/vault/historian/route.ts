@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { hasValidOrigin } from "@/lib/api";
-import { clientIdentifier, consumeRateLimit } from "@/lib/rate-limit";
+import { getCurrentUser } from "@/lib/auth";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import {
   askHistorian,
   validateQuestion,
@@ -15,6 +16,7 @@ import {
 //   200 { status: "answered", ... }
 //   200 { status: "unsupported", reason: "outside_faze_scope", ... }
 //   200 { status: "unavailable", reason: "not_configured" | "upstream_error" | "timeout", ... }
+//   401 { status: "unauthenticated", ... }
 //   400 { status: "unsupported", reason: "invalid_question", ... }
 // The UI treats every status as a normal result, so the page never breaks
 // when Gemini is missing or down.
@@ -24,6 +26,31 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { status: "unsupported", reason: "invalid_question", message: "Invalid request origin.", related: [] } satisfies HistorianResponse,
       { status: 403 },
+    );
+  }
+
+  let user;
+  try {
+    user = await getCurrentUser(request);
+  } catch (error) {
+    console.error("Historian session lookup failed:", error);
+    return NextResponse.json(
+      {
+        status: "unavailable",
+        reason: "upstream_error",
+        message: "The Historian is temporarily unavailable.",
+        related: [],
+      } satisfies HistorianResponse,
+      { status: 503 },
+    );
+  }
+  if (!user) {
+    return NextResponse.json(
+      {
+        status: "unauthenticated",
+        message: "Sign in to ask the Historian.",
+      } satisfies HistorianResponse,
+      { status: 401 },
     );
   }
 
@@ -48,7 +75,7 @@ export async function POST(request: NextRequest) {
   try {
     const rateLimit = await consumeRateLimit({
       scope: "vault-historian",
-      identifier: clientIdentifier(request),
+      identifier: user._id.toHexString(),
       limit: 10,
       windowMs: 10 * 60 * 1000,
     });
