@@ -55,7 +55,7 @@ export function SiteNav() {
     : NAV_LINKS.filter((link) => link.href !== "/account");
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-background/85 backdrop-blur">
+    <header className="hide-on-odyssey sticky top-0 z-40 border-b border-white/10 bg-background/85 backdrop-blur">
       <nav
         aria-label="Primary"
         className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6"

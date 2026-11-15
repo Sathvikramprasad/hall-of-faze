@@ -19,7 +19,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={geistSans.variable + " " + geistMono.variable + " h-full antialiased"}>
       <body className="min-h-full flex flex-col">
         <Suspense fallback={
-          <header className="border-b border-white/10 bg-background">
+          <header className="hide-on-odyssey border-b border-white/10 bg-background">
             <div className="mx-auto flex max-w-6xl items-center px-4 py-3 sm:px-6">
               <Link href="/" className="text-lg font-black tracking-tight">Hall of <span className="text-accent">FaZe</span></Link>
             </div>

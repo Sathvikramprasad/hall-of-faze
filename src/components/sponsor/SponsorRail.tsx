@@ -67,7 +67,7 @@ function SponsorStrip({ sponsor }: { sponsor: Sponsor }) {
   return (
     <aside
       aria-label="Sponsor"
-      className="border-b border-white/10 bg-surface/80 text-xs text-muted xl:hidden"
+      className="hide-on-odyssey border-b border-white/10 bg-surface/80 text-xs text-muted xl:hidden"
     >
       <div className="mx-auto flex max-w-6xl items-center justify-center gap-2 whitespace-nowrap px-4 py-1.5 sm:px-6">
         <span className="hidden sm:inline">Challenges presented by</span>

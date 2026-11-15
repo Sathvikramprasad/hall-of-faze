@@ -104,3 +104,68 @@ body {
   background-position: center;
   background-repeat: repeat;
 }
+
+/* ------------------------------------------------------------------ */
+/* Odyssey home hero: semi-circle menu                                 */
+/* ------------------------------------------------------------------ */
+/* The wheel replaces the top bar (and the sponsor strip) on the page that shows it. */
+body:has(.odyssey) .hide-on-odyssey {
+  display: none;
+}
+.odyssey-slice {
+  cursor: pointer;
+  outline: none;
+  transform-box: view-box;
+  /* The wheel's centre (CX, CY in OdysseyHero.tsx) so a slice grows outward from the hub. */
+  transform-origin: 100px 450px;
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.odyssey-slice-shape {
+  fill: transparent;
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1.5;
+  transition: fill 220ms ease, stroke 220ms ease;
+}
+.odyssey-slice-label {
+  fill: #ffffff;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  transition: fill 160ms ease;
+}
+.odyssey-slice[data-active],
+.odyssey-slice:hover,
+.odyssey-slice:focus-visible {
+  transform: scale(1.07);
+}
+.odyssey-slice[data-active] .odyssey-slice-shape,
+.odyssey-slice:hover .odyssey-slice-shape,
+.odyssey-slice:focus-visible .odyssey-slice-shape {
+  fill: rgba(228, 0, 43, 0.1);
+  stroke: rgba(228, 0, 43, 0.85);
+}
+.odyssey-slice[data-active] .odyssey-slice-label,
+.odyssey-slice:hover .odyssey-slice-label,
+.odyssey-slice:focus-visible .odyssey-slice-label {
+  fill: #e4002b;
+}
+.odyssey-slice:focus-visible .odyssey-slice-shape {
+  stroke: #ffffff;
+  stroke-width: 2.5;
+}
+.odyssey-slice:active {
+  transform: scale(1.04);
+}
+.odyssey-hub-glow {
+  animation: odyssey-breathe 4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes odyssey-breathe {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .odyssey-slice { transition: none; }
+  .odyssey-hub-glow { animation: none; }
+}
