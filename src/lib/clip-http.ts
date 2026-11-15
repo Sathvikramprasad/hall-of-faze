@@ -43,13 +43,8 @@ export function apiError(
   );
 }
 
-export function apiJson<T>(body: T, init: { status?: number; publicCache?: boolean } = {}) {
-  return NextResponse.json(body, {
-    status: init.status ?? 200,
-    headers: init.publicCache
-      ? { "Cache-Control": "public, max-age=15, stale-while-revalidate=60" }
-      : NO_STORE,
-  });
+export function apiJson<T>(body: T, init: { status?: number } = {}) {
+  return NextResponse.json(body, { status: init.status ?? 200, headers: NO_STORE });
 }
 
 export async function readJsonBody(request: Request): Promise<Record<string, unknown> | null> {

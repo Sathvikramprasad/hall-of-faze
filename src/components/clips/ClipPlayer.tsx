@@ -28,6 +28,8 @@ type Props = {
 export default function ClipPlayer({ src, poster, title, className = "" }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  /** True while we force the browser to compute the length of a file that doesn't store it. */
+  const probingDurationRef = useRef(false);
   const speedId = useId();
 
   const [playing, setPlaying] = useState(false);
@@ -174,13 +176,32 @@ export default function ClipPlayer({ src, poster, title, className = "" }: Props
         onWaiting={() => setWaiting(true)}
         onPlaying={() => setWaiting(false)}
         onCanPlay={() => setWaiting(false)}
-        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-        onLoadedMetadata={(e) => {
-          setDuration(e.currentTarget.duration);
-          setVolume(e.currentTarget.volume);
-          setMuted(e.currentTarget.muted);
+        onTimeUpdate={(e) => {
+          if (!probingDurationRef.current) setCurrentTime(e.currentTarget.currentTime);
         }}
-        onDurationChange={(e) => setDuration(e.currentTarget.duration)}
+        onLoadedMetadata={(e) => {
+          const v = e.currentTarget;
+          setVolume(v.volume);
+          setMuted(v.muted);
+          if (Number.isFinite(v.duration)) {
+            setDuration(v.duration);
+          } else {
+            // Browser-recorded WebM files often have no stored duration (Infinity), which
+            // breaks the seek bar. Seeking far past the end makes the browser compute it.
+            probingDurationRef.current = true;
+            v.currentTime = 1e101;
+          }
+        }}
+        onDurationChange={(e) => {
+          const v = e.currentTarget;
+          if (!Number.isFinite(v.duration)) return;
+          setDuration(v.duration);
+          if (probingDurationRef.current) {
+            probingDurationRef.current = false;
+            v.currentTime = 0;
+            setCurrentTime(0);
+          }
+        }}
         onProgress={updateBuffered}
         onVolumeChange={(e) => {
           setVolume(e.currentTarget.volume);

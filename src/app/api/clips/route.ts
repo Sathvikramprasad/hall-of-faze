@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
   }
   try {
     const feed = await listApprovedClips({ challengeId, limit, cursor: params.get("cursor") });
-    return apiJson(feed, { publicCache: true });
+    // Not cached: approvals and takedowns must show up immediately.
+    return apiJson(feed);
   } catch (error) {
     return handleRouteError(error, "GET /api/clips");
   }
