@@ -13,7 +13,7 @@ import {
 //
 // Always responds with a HistorianResponse. Fallbacks are explicit:
 //   200 { status: "answered", ... }
-//   200 { status: "unsupported", reason: "outside_vault", ... }
+//   200 { status: "unsupported", reason: "outside_faze_scope", ... }
 //   200 { status: "unavailable", reason: "not_configured" | "upstream_error" | "timeout", ... }
 //   400 { status: "unsupported", reason: "invalid_question", ... }
 // The UI treats every status as a normal result, so the page never breaks
