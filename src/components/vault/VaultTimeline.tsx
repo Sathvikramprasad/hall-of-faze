@@ -43,7 +43,7 @@ export function VaultTimeline() {
       <div className="space-y-12">
         {groups.map(({ year, entries }) => (
           <section key={year} id={`year-${year}`} aria-labelledby={`year-${year}-heading`} className="scroll-mt-24">
-            <h3 id={`year-${year}-heading`} className="font-mono text-3xl font-black text-accent">
+            <h3 id={`year-${year}-heading`} className="font-display text-4xl tracking-wide text-accent-fill">
               {year}
             </h3>
             <ol className="mt-4 space-y-4 border-l-2 border-accent/40 pl-6">

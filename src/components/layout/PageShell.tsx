@@ -23,8 +23,9 @@ export function PageShell({ children }: { children: ReactNode }) {
       </main>
       <footer className="border-t border-white/10 py-8 text-center text-sm text-muted">
         <p className="mx-auto max-w-3xl px-4">
-          Hall of FaZe is a fan project. Vault entries link to their sources; videos
-          are embedded from and credited to their original uploaders.
+          Hall of FaZe was built for the FaZe Clan challenge at HackUTA 2026. FaZe logos and
+          Tiger Camo come from FaZe&apos;s official brand toolkit. Vault entries link to their
+          sources, and videos are embedded from and credited to their original uploaders.
         </p>
       </footer>
     </>

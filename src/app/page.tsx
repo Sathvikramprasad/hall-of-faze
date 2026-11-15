@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { MonthlyTop3, MonthlyTop3Skeleton } from "@/components/home/MonthlyTop3";
@@ -13,31 +14,46 @@ export default function Home() {
   return (
     <PageShell>
       {/* Hero */}
-      <section className="hero-glow border-b border-white/10">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-          <p className="font-mono text-sm font-semibold uppercase tracking-widest text-accent">
-            Since 2010
-          </p>
-          <h1 className="mt-3 max-w-3xl text-5xl font-black leading-[1.05] tracking-tight sm:text-7xl">
-            Hall of <span className="text-accent">FaZe</span>
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-muted sm:text-xl">
-            Relive the moments that built the clan, see what the community is watching this
-            month, and take on a Legacy Challenge.
-          </p>
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/vault"
-              className="inline-flex min-h-12 items-center justify-center rounded-lg bg-accent-fill px-6 font-semibold text-white transition-colors hover:bg-accent-fill-strong"
-            >
-              Explore the Vault
-            </Link>
-            <Link
-              href={LEGACY_CHALLENGE_HREF}
-              className="inline-flex min-h-12 items-center justify-center rounded-lg border border-white/20 px-6 font-semibold transition-colors hover:border-accent hover:text-accent"
-            >
-              Take a Legacy Challenge
-            </Link>
+      <section className="border-b border-white/10">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1fr_minmax(0,24rem)] md:py-20">
+          <div>
+            <p className="font-mono text-sm font-semibold uppercase tracking-widest text-accent">
+              Since 2010
+            </p>
+            <h1 className="mt-3 font-display text-6xl uppercase leading-none tracking-wide sm:text-8xl">
+              Hall of <span className="text-accent-fill">FaZe</span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted sm:text-xl">
+              Relive the moments that built the clan, see what the community is watching this
+              month, and take on a Legacy Challenge.
+            </p>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/vault"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg bg-accent-fill px-6 font-semibold text-white transition-colors hover:bg-accent-fill-strong"
+              >
+                Explore the Vault
+              </Link>
+              <Link
+                href={LEGACY_CHALLENGE_HREF}
+                className="inline-flex min-h-12 items-center justify-center rounded-lg border border-white/20 px-6 font-semibold transition-colors hover:border-accent hover:text-accent"
+              >
+                Take a Legacy Challenge
+              </Link>
+            </div>
+          </div>
+
+          {/* Official "Logo 1" on the red/black Tiger Camo, as in FaZe's logo usage guide.
+              The logo spans 60% of the panel, leaving the clear space the guidelines ask for. */}
+          <div className="faze-camo flex aspect-[4/3] items-center justify-center rounded-2xl">
+            <Image
+              src="/brand/faze-logo-white-double-stroke.png"
+              alt="FaZe Clan logo"
+              width={280}
+              height={188}
+              priority
+              className="h-auto w-3/5"
+            />
           </div>
         </div>
       </section>
@@ -53,7 +69,7 @@ export default function Home() {
         {/* From the Vault */}
         <section aria-labelledby="vault-teaser-heading">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 id="vault-teaser-heading" className="text-2xl font-bold tracking-tight">
+            <h2 id="vault-teaser-heading" className="font-display text-3xl uppercase tracking-wide">
               From the Vault
             </h2>
             <Link href="/vault" className="text-sm font-medium text-accent underline underline-offset-4">
@@ -83,7 +99,7 @@ export default function Home() {
         {/* Legacy Challenge + Historian */}
         <section aria-label="Get involved" className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-accent/40 bg-accent/10 p-6 sm:p-8">
-            <h2 className="text-2xl font-bold tracking-tight">Legacy Challenges</h2>
+            <h2 className="font-display text-3xl uppercase tracking-wide">Legacy Challenges</h2>
             <p className="mt-2 text-muted">
               Recreate an iconic FaZe moment, submit your clip, and compete for this month&apos;s
               Top 3.
@@ -96,7 +112,7 @@ export default function Home() {
             </Link>
           </div>
           <div className="rounded-2xl border border-white/10 bg-surface p-6 sm:p-8">
-            <h2 className="text-2xl font-bold tracking-tight">Ask the Historian</h2>
+            <h2 className="font-display text-3xl uppercase tracking-wide">Ask the Historian</h2>
             <p className="mt-2 text-muted">
               Questions about FaZe history, answered from the Vault&apos;s sourced entries.
             </p>

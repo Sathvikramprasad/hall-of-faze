@@ -11,7 +11,7 @@ export async function MonthlyTop3() {
   return (
     <>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="top3-heading" className="text-2xl font-bold tracking-tight">
+        <h2 id="top3-heading" className="font-display text-3xl uppercase tracking-wide">
           Top 3: {monthLabel}
         </h2>
         {isMock && (
@@ -24,7 +24,7 @@ export async function MonthlyTop3() {
         {entries.map((entry) => {
           const content = (
             <>
-              <p className="font-mono text-5xl font-black text-accent">#{entry.rank}</p>
+              <p className="font-display text-6xl text-accent-fill">#{entry.rank}</p>
               <p className="mt-4 text-lg font-bold leading-snug">{entry.title}</p>
               <p className="mt-1 text-sm text-muted">{entry.creator}</p>
               <p className="mt-4 flex items-center justify-between text-sm">
@@ -55,7 +55,7 @@ export async function MonthlyTop3() {
 export function MonthlyTop3Skeleton() {
   return (
     <>
-      <h2 id="top3-heading" className="text-2xl font-bold tracking-tight">
+      <h2 id="top3-heading" className="font-display text-3xl uppercase tracking-wide">
         Top 3
       </h2>
       <ol className="mt-6 grid gap-4 md:grid-cols-3" aria-busy="true">

@@ -20,7 +20,7 @@ export default function VaultPage() {
           <p className="font-mono text-sm font-semibold uppercase tracking-widest text-accent">
             {VAULT_START_YEAR}–{VAULT_END_YEAR}
           </p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">The FaZe Vault</h1>
+          <h1 className="mt-2 font-display text-5xl uppercase tracking-wide sm:text-7xl">The FaZe Vault</h1>
           <p className="mt-4 text-lg leading-8 text-muted">
             From the first trickshot videos to the latest titles. Every milestone links to its
             sources.
@@ -35,7 +35,7 @@ export default function VaultPage() {
         </section>
 
         <section aria-labelledby="members-heading" className="mt-20">
-          <h2 id="members-heading" className="text-2xl font-bold tracking-tight">
+          <h2 id="members-heading" className="font-display text-3xl uppercase tracking-wide">
             Members
           </h2>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

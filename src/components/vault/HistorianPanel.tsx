@@ -52,7 +52,7 @@ export function HistorianPanel() {
       aria-labelledby={`${inputId}-heading`}
       className="scroll-mt-24 rounded-2xl border border-white/10 bg-surface p-6 sm:p-8"
     >
-      <h2 id={`${inputId}-heading`} className="text-2xl font-bold tracking-tight">
+      <h2 id={`${inputId}-heading`} className="font-display text-3xl uppercase tracking-wide">
         Ask the Historian
       </h2>
       <p className="mt-2 text-muted">

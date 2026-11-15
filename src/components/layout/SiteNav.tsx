@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -17,10 +18,18 @@ export function SiteNav() {
     <header className="sticky top-0 z-40 border-b border-white/10 bg-background/85 backdrop-blur">
       <nav
         aria-label="Primary"
-        className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6"
+        className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6"
       >
-        <Link href="/" className="text-lg font-black tracking-tight" onClick={() => setOpen(false)}>
-          Hall of <span className="text-accent">FaZe</span>
+        <Link href="/" className="flex items-center gap-4" onClick={() => setOpen(false)}>
+          {/* One-color FaZe logo: brand rules allow it only between 40px and 60px wide. */}
+          <Image
+            src="/brand/faze-logo-onecolor-white.png"
+            alt=""
+            width={56}
+            height={37}
+            priority
+          />
+          <span className="font-display text-xl uppercase tracking-wide">Hall of FaZe</span>
         </Link>
 
         <button
