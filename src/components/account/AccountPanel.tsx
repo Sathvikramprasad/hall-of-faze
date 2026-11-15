@@ -18,12 +18,18 @@ type AuthEnvelope = {
   error?: { message?: string };
 };
 
-export default function AccountPanel({ nextPath = null }: { nextPath?: string | null }) {
+export default function AccountPanel({
+  nextPath = null,
+  initialMode = "login",
+}: {
+  nextPath?: string | null;
+  initialMode?: Extract<Mode, "login" | "register">;
+}) {
   const router = useRouter();
   const ids = { name: useId(), email: useId(), password: useId() };
   const [user, setUser] = useState<AccountUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
