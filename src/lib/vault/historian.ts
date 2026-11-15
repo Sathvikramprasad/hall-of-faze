@@ -5,6 +5,7 @@ import {
   findRelatedEntries,
   formatEntryDate,
 } from "./queries";
+import { answerBotSmallTalk } from "../faze-bot/guest-help";
 import type { SourceLink, VaultEntry } from "./types";
 
 // FaZe Bot: prefers the curated Vault, then uses Google Search grounding
@@ -284,6 +285,16 @@ export async function askHistorian(
   question: string,
   history: HistorianTurn[] = [],
 ): Promise<HistorianResponse> {
+  const smallTalkAnswer = answerBotSmallTalk(question);
+  if (smallTalkAnswer) {
+    return {
+      status: "answered",
+      answer: smallTalkAnswer,
+      citations: [],
+      webSources: [],
+    };
+  }
+
   const recentUserContext = history
     .filter((turn) => turn.role === "user")
     .slice(-2)

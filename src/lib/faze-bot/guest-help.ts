@@ -16,6 +16,28 @@ function includesAny(text: string, terms: readonly string[]): boolean {
   return terms.some((term) => text.includes(term));
 }
 
+export function answerBotSmallTalk(question: string): string | null {
+  const text = question.trim().toLowerCase().replaceAll("’", "'");
+
+  if (/\b(?:what(?:'s|s| is) your name|who are you|what are you called)\b/.test(text)) {
+    return "I’m FaZe Bot, the Hall of FaZe assistant. I can help with this website and answer sourced questions about FaZe for verified members.";
+  }
+
+  if (/\b(?:what can you do|how can you help|what do you do)\b/.test(text)) {
+    return "I can help with Hall of FaZe accounts and navigation. Verified members can also ask me follow-up questions about FaZe history, teams, creators, members, and esports.";
+  }
+
+  if (/^(?:hi|hey|hello|yo|good (?:morning|afternoon|evening))\b/.test(text)) {
+    return "Hey! I’m FaZe Bot. How can I help?";
+  }
+
+  if (/^(?:thanks|thank you|thx)\b/.test(text)) {
+    return "You’re welcome! What else can I help you with?";
+  }
+
+  return null;
+}
+
 function contextualize(question: string, history: GuestHelpTurn[]): string {
   const normalized = question.trim().toLowerCase();
   const isShortFollowUp = normalized.split(/\s+/).length <= 4 &&
@@ -38,9 +60,12 @@ export function answerGuestHelp(
   question: string,
   history: GuestHelpTurn[] = [],
 ): string {
+  const smallTalkAnswer = answerBotSmallTalk(question);
+  if (smallTalkAnswer) return smallTalkAnswer;
+
   const text = contextualize(question, history);
 
-  if (/^(hi|hey|hello|yo|help|good (morning|afternoon|evening))\b/.test(text)) {
+  if (/^help\b/.test(text)) {
     return "Hey! I can help you create an account, sign in, verify your email, reset your password, or understand which Hall of FaZe features need an account.";
   }
 

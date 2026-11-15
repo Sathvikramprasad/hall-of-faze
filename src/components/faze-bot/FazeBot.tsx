@@ -12,6 +12,7 @@ import {
 import { AUTH_CHANGED_EVENT } from "@/lib/client-auth";
 import { OPEN_FAZE_BOT_EVENT } from "@/lib/faze-bot/events";
 import {
+  answerBotSmallTalk,
   answerGuestHelp,
   type GuestHelpTurn,
 } from "@/lib/faze-bot/guest-help";
@@ -54,6 +55,8 @@ export function FazeBot() {
   const [sending, setSending] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const nextMessageId = useRef(1);
 
   useEffect(() => {
@@ -93,8 +96,21 @@ export function FazeBot() {
     function closeOnEscape(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") setOpen(false);
     }
+    function closeOnOutsideClick(event: PointerEvent) {
+      if (!(event.target instanceof Node)) return;
+      if (
+        !dialogRef.current?.contains(event.target) &&
+        !toggleRef.current?.contains(event.target)
+      ) {
+        setOpen(false);
+      }
+    }
     window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => {
+      window.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -129,6 +145,16 @@ export function FazeBot() {
     const priorMemberHistory = memberHistory();
     addMessage({ role: "user", text: trimmed, mode: currentMode });
     setQuestion("");
+
+    const smallTalkAnswer = answerBotSmallTalk(trimmed);
+    if (smallTalkAnswer) {
+      addMessage({
+        role: "assistant",
+        text: smallTalkAnswer,
+        mode: currentMode,
+      });
+      return;
+    }
 
     if (currentMode === "guest") {
       addMessage({
@@ -205,6 +231,7 @@ export function FazeBot() {
     <>
       {open && (
         <section
+          ref={dialogRef}
           id="faze-bot-window"
           role="dialog"
           aria-label="FaZe Bot chat"
@@ -299,6 +326,7 @@ export function FazeBot() {
       )}
 
       <button
+        ref={toggleRef}
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}

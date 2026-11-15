@@ -73,6 +73,22 @@ test("answers sourced Vault questions when Gemini is not configured", async () =
   }
 });
 
+test("answers FaZe Bot identity questions without a Vault fallback", async () => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
+
+  try {
+    const result = await askHistorian("whats your name??");
+    assert.equal(result.status, "answered");
+    if (result.status !== "answered") return;
+    assert.match(result.answer, /I’m FaZe Bot/);
+    assert.deepEqual(result.citations, []);
+  } finally {
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  }
+});
+
 test("does not pretend live search is available without a Gemini key", async () => {
   const previousKey = process.env.GEMINI_API_KEY;
   delete process.env.GEMINI_API_KEY;

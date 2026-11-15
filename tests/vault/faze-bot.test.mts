@@ -2,9 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const guestHelpUrl = new URL("../../src/lib/faze-bot/guest-help.ts", import.meta.url).href;
-const { answerGuestHelp } = (await import(guestHelpUrl)) as typeof import(
+const { answerBotSmallTalk, answerGuestHelp } = (await import(guestHelpUrl)) as typeof import(
   "../../src/lib/faze-bot/guest-help"
 );
+
+test("answers identity and basic conversational questions directly", () => {
+  assert.match(answerBotSmallTalk("whats your name??") ?? "", /I’m FaZe Bot/);
+  assert.match(answerBotSmallTalk("What can you do?") ?? "", /Verified members/);
+  assert.match(answerBotSmallTalk("thank you") ?? "", /You’re welcome/);
+});
 
 test("answers account setup questions without using Gemini", () => {
   assert.match(answerGuestHelp("How do I create an account?"), /Create account/i);
