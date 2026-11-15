@@ -535,4 +535,457 @@ export const vaultEntries: VaultEntry[] = [
       },
     ],
   },
+  // ---------------------------------------------------------------------
+  // Added in the "populate" pass (Nov 2026). Mostly from the Wikipedia and
+  // My Favorite Things Wiki pages on FaZe Clan, with event results checked
+  // against tournament coverage. Year-only dates use datePrecision "year".
+  // ---------------------------------------------------------------------
+  {
+    id: "temperrr-joins",
+    date: "2010-01-01",
+    datePrecision: "year",
+    title: "Temperrr joins in year one",
+    summary:
+      "Thomas \"Temperrr\" Oliveira joins during FaZe's first year. He goes on to become the clan's first CEO and one of its co-owners.",
+    category: "origins",
+    memberSlugs: ["temperrr"],
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "class-of-2011",
+    date: "2011-01-01",
+    datePrecision: "year",
+    title: "Rain and Teeqo join",
+    summary:
+      "Rain and Teeqo join the same year as Apex. Rain later becomes one of the clan's co-owners.",
+    category: "origins",
+    sources: [
+      { label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" },
+      { label: "My Favorite Things Wiki: FaZe Clan", url: "https://my-favorite-things.fandom.com/wiki/FaZe_Clan" },
+    ],
+  },
+  {
+    id: "founders-step-away-2012",
+    date: "2012-01-01",
+    datePrecision: "year",
+    title: "CLipZ and Resistance step away",
+    summary:
+      "Two of the three founders, CLipZ and Resistance, leave the clan in 2012. The same year FaZe starts its long-running partnership with G Fuel.",
+    category: "origins",
+    memberSlugs: ["clipz", "resistance"],
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "class-of-2013",
+    date: "2013-01-01",
+    datePrecision: "year",
+    title: "Banks, Adapt, Sensei and Kay join",
+    summary:
+      "Richard \"Banks\" Bengtson joins with Adapt, Sensei and Kay. Banks becomes a co-owner and, years later, the company's CEO.",
+    category: "creators",
+    memberSlugs: ["banks"],
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "esniping-division",
+    date: "2013-09-19",
+    title: "FaZe eSniping division launches",
+    summary:
+      "FaZe announces a competitive sniping division with Zydar, Hyspe and RanbOw, led by WaRTeK. It is renamed FaZe France the following April.",
+    category: "esports",
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "faze-red-and-black",
+    date: "2014-04-05",
+    title: "Two Call of Duty squads: FaZe Red and FaZe Black",
+    summary:
+      "FaZe picks up a second Call of Duty roster and splits its players into FaZe Red and FaZe Black, an experiment it repeats for the 2015 Call of Duty Championship.",
+    category: "esports",
+    sources: [{ label: "Call of Duty Esports Wiki: FaZe Red", url: "https://cod-esports.fandom.com/wiki/FaZe_Red" }],
+  },
+  {
+    id: "cod-champs-2015",
+    date: "2015-03-29",
+    title: "Third at the 2015 Call of Duty Championship",
+    summary:
+      "FaZe Red finishes third at the Advanced Warfare world championship, earning $120,000, the organization's best Champs result to that point.",
+    category: "esports",
+    sources: [
+      { label: "Esports Earnings: FaZe Clan (Call of Duty)", url: "https://www.esportsearnings.com/teams/240-faze-clan/results/301-call-of-duty" },
+      { label: "Call of Duty Esports Wiki: FaZe Red", url: "https://cod-esports.fandom.com/wiki/FaZe_Red" },
+    ],
+  },
+  {
+    id: "faze-france-split",
+    date: "2015-05-26",
+    title: "FaZe France goes its own way",
+    summary: "The players and staff of FaZe France leave together to start their own organization.",
+    category: "esports",
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "mlg-pro-league-s3-2015",
+    date: "2015-09-20",
+    title: "MLG Pro League Season 3 champions",
+    summary:
+      "Clayster, Enable, ZooMaa and Attach win the Advanced Warfare Pro League Season 3 playoffs and $40,000, capping a summer in which they also beat OpTic at UMG Dallas.",
+    category: "esports",
+    sources: [
+      { label: "Esports Earnings: FaZe Clan (Call of Duty)", url: "https://www.esportsearnings.com/teams/240-faze-clan/results/301-call-of-duty" },
+      { label: "TheSportsDB: FaZe Clan", url: "https://www.thesportsdb.com/team/136293" },
+    ],
+  },
+  {
+    id: "clout-house",
+    date: "2017-01-01",
+    datePrecision: "year",
+    title: "Banks moves to LA and the Clout House",
+    summary:
+      "Banks relocates to Los Angeles and starts the Clout House, moving FaZe's center of gravity to the West Coast.",
+    category: "culture",
+    memberSlugs: ["banks"],
+    sources: [
+      { label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" },
+      {
+        label: "Complex",
+        url: "https://www.complex.com/pop-culture/a/taffeta-chime/faze-clan-streaming-twitch-youtube-explainer",
+      },
+    ],
+  },
+  {
+    id: "esl-one-new-york-2017",
+    date: "2017-09-17",
+    title: "ESL One New York 2017 champions",
+    summary:
+      "The revamped CS:GO roster sweeps Team Liquid 3–0 in the final without dropping a map all event, taking $125,000 and its first big trophy with olofmeister and GuardiaN.",
+    category: "esports",
+    memberSlugs: ["karrigan"],
+    sources: [
+      { label: "GosuGamers", url: "https://www.gosugamers.net/counterstrike/news/45357-faze-clan-victorious-at-esl-one-new-york-2017" },
+      { label: "MCV/DEVELOP", url: "https://www.mcvuk.com/esports/faze-clan-cruise-to-csgo-esl-one-new-york-victory-and-125000/" },
+    ],
+  },
+  {
+    id: "fortnite-division",
+    date: "2018-03-03",
+    title: "FaZe launches a Fortnite team",
+    summary:
+      "FaZe moves early into Fortnite Battle Royale. Turner \"Tfue\" Tenney joins and becomes the face of the division alongside his duo partner Cloakzy.",
+    category: "esports",
+    sources: [
+      { label: "Fortnite Esports Wiki: FaZe Clan", url: "https://fortnite-esports.fandom.com/wiki/FaZe_Clan" },
+      { label: "ESTNN", url: "https://estnn.com/end-of-an-era-tfues-fortnite-journey-from-beginning-to-end" },
+    ],
+  },
+  {
+    id: "cwl-stage-one-2018",
+    date: "2018-04-08",
+    title: "CWL Pro League Stage 1 champions",
+    summary:
+      "Attach, ZooMaa, Priestahh and Replays beat OpTic in a ten-map final in Columbus for $212,500. It is FaZe's first major Call of Duty LAN title since 2015, and ZooMaa is named stage MVP.",
+    category: "esports",
+    sources: [
+      { label: "Dot Esports", url: "https://dotesports.com/?p=4135" },
+      { label: "Esports Earnings: FaZe Clan (Call of Duty)", url: "https://www.esportsearnings.com/teams/240-faze-clan/results/301-call-of-duty" },
+    ],
+  },
+  {
+    id: "fall-skirmish-2018",
+    date: "2018-10-28",
+    title: "Tfue and Cloakzy win the Fall Skirmish",
+    summary:
+      "At TwitchCon in San Jose the FaZe duo wins the Fortnite Fall Skirmish Grand Finals, taking the $400,000 top prize plus bonuses for a match win and most eliminations, about $510,000 in all.",
+    category: "esports",
+    sources: [
+      { label: "Win.gg", url: "https://win.gg/news/tfue-and-cloak-win-the-fortnite-fall-skirmish-for-faze-clan/" },
+      { label: "Liquipedia: Tfue", url: "https://liquipedia.net/fortnite/Tfue" },
+    ],
+  },
+  {
+    id: "new-leadership-2018",
+    date: "2018-11-22",
+    title: "New leadership and the Champion collab",
+    summary:
+      "Karmaloop founder Greg Selkoe becomes president and Lee Trink becomes CEO in 2018, as FaZe leans into apparel, starting with a Champion collaboration announced in November.",
+    category: "business",
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "lil-yachty-inducted",
+    date: "2018-12-15",
+    title: "Lil Yachty is inducted at Rolling Loud",
+    summary:
+      "Lil Yachty is welcomed into FaZe on stage at Rolling Loud in Los Angeles, an early sign of the music crossover that defines FaZe's next few years.",
+    category: "culture",
+    sources: [
+      {
+        label: "Billboard",
+        url: "https://www.billboard.com/pro/inside-the-gaming-collective-thats-drawing-bigtime-music-investors-and-star-players",
+      },
+    ],
+  },
+  {
+    id: "nickmercs-joins",
+    date: "2019-05-30",
+    title: "NICKMERCS joins",
+    summary:
+      "Streamer NICKMERCS joins on FaZe's ninth birthday, after Sway (March) and Jarvis (April). CLipZ also rejoins in 2019, while Censor, karrigan and Tfue leave.",
+    category: "creators",
+    memberSlugs: ["clipz", "karrigan"],
+    sources: [
+      { label: "Fortnite Esports Wiki: FaZe Clan", url: "https://fortnite-esports.fandom.com/wiki/FaZe_Clan" },
+      { label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" },
+    ],
+  },
+  {
+    id: "atlanta-faze-announced",
+    date: "2019-10-26",
+    title: "Atlanta FaZe is announced",
+    summary:
+      "FaZe and Atlanta Esports Ventures, which bought a Call of Duty League franchise slot in May, unveil Atlanta FaZe for the league's first season.",
+    category: "esports",
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "fight-2-fund",
+    date: "2020-03-15",
+    title: "Fight 2 Fund raises over $124,000",
+    summary:
+      "Early in the COVID-19 pandemic, FaZe runs the Fight 2 Fund charity stream event and raises more than $124,000.",
+    category: "culture",
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "valorant-division",
+    date: "2020-06-25",
+    title: "FaZe enters VALORANT",
+    summary:
+      "FaZe launches a VALORANT division weeks after the game's release. Bronny James also joins the clan in 2020, and CLipZ leaves again.",
+    category: "esports",
+    memberSlugs: ["clipz"],
+    sources: [
+      { label: "VALORANT Esports Wiki: FaZe Clan", url: "https://valorant-esports.fandom.com/wiki/FaZe_Clan" },
+      { label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" },
+    ],
+  },
+  {
+    id: "save-the-kids",
+    date: "2021-01-01",
+    datePrecision: "year",
+    title: "The Save the Kids token scandal",
+    summary:
+      "Members are linked to promoting the Save the Kids crypto token. FaZe removes Kay and suspends Jarvis, Teeqo and Nikan; Teeqo is later reinstated after being found uninvolved.",
+    category: "controversy",
+    sources: [
+      { label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" },
+      {
+        label: "Complex",
+        url: "https://www.complex.com/pop-culture/a/taffeta-chime/faze-clan-streaming-twitch-youtube-explainer",
+      },
+    ],
+  },
+  {
+    id: "iem-katowice-2022",
+    date: "2022-02-27",
+    title: "IEM Katowice 2022 champions",
+    summary:
+      "After starting in the play-in stage, FaZe sweeps G2 3–0 in a five-hour final. The win starts its run at the Intel Grand Slam.",
+    category: "esports",
+    memberSlugs: ["karrigan"],
+    sources: [
+      { label: "Upcomer", url: "https://upcomer.com/faze-clan-beat-g2-esports-in-iem-katowice-2022-grand-final/" },
+      { label: "ESL FACEIT Group", url: "https://eslfaceitgroup.com/?p=12788" },
+    ],
+  },
+  {
+    id: "epl-s15-2022",
+    date: "2022-04-01",
+    datePrecision: "month",
+    title: "ESL Pro League Season 15 champions",
+    summary: "FaZe beats ENCE 3–1 for its second Intel Grand Slam title of the year.",
+    category: "esports",
+    memberSlugs: ["karrigan"],
+    sources: [
+      {
+        label: "GosuGamers",
+        url: "https://www.gosugamers.net/counterstrike/news/66384-faze-win-esl-pro-league-season-17-trophy-and-complete-the-intel-grand-slam-challenge",
+      },
+    ],
+  },
+  {
+    id: "iem-cologne-2022",
+    date: "2022-07-01",
+    datePrecision: "month",
+    title: "IEM Cologne 2022 champions",
+    summary:
+      "FaZe beats Natus Vincere 3–2 in the final. With Katowice and the Antwerp Major already won, it now holds the three biggest Counter-Strike trophies of the year and is one title short of the Grand Slam.",
+    category: "esports",
+    memberSlugs: ["karrigan"],
+    sources: [
+      {
+        label: "esports.gg",
+        url: "https://esports.gg/news/cs-go/the-undisputed-world-number-one-faze-clan-are-your-iem-cologne-2022-champions",
+      },
+      { label: "Hotspawn", url: "https://www.hotspawn.com/?p=63177" },
+      {
+        label: "GosuGamers",
+        url: "https://www.gosugamers.net/counterstrike/news/66384-faze-win-esl-pro-league-season-17-trophy-and-complete-the-intel-grand-slam-challenge",
+      },
+    ],
+  },
+  {
+    id: "layoffs-2023",
+    date: "2023-02-17",
+    title: "FaZe lays off a fifth of its staff",
+    summary:
+      "With its share price below $1, FaZe cuts about 20% of its workforce. A month later Nasdaq warns it could be delisted.",
+    category: "business",
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "intel-grand-slam",
+    date: "2023-03-26",
+    title: "FaZe completes the Intel Grand Slam",
+    summary:
+      "Beating Cloud9 to win ESL Pro League Season 17 completes the Grand Slam after 392 days, worth a $1,000,000 bonus. FaZe is the fourth team, and the first international roster, to do it.",
+    category: "esports",
+    memberSlugs: ["karrigan"],
+    sources: [
+      { label: "ESL", url: "https://esl.com/article/faze-clan-claim-intel-grand-slam-iv" },
+      { label: "ESL FACEIT Group", url: "https://eslfaceitgroup.com/?p=16810" },
+    ],
+  },
+  {
+    id: "snoop-leaves-board",
+    date: "2023-04-01",
+    datePrecision: "month",
+    title: "Snoop Dogg leaves the board",
+    summary: "Snoop Dogg steps off FaZe's board of directors about a year after joining it.",
+    category: "business",
+    memberSlugs: ["snoop"],
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "trink-out",
+    date: "2023-09-11",
+    title: "CEO Lee Trink is let go",
+    summary:
+      "FaZe ends Lee Trink's time as CEO with immediate effect and names Christoph Pachler interim CEO, a month before the GameSquare deal.",
+    category: "business",
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "six-invitational-2024",
+    date: "2024-02-01",
+    datePrecision: "month",
+    title: "Six Invitational 2024 runners-up",
+    summary:
+      "FaZe's Brazilian Rainbow Six Siege roster loses the final 3–2 to w7m esports and takes $450,000 for second place.",
+    category: "esports",
+    sources: [{ label: "esports.gg", url: "https://esports.gg/news/rainbow-six-siege/six-invitational-2025-overview" }],
+  },
+  {
+    id: "copenhagen-major-2024",
+    date: "2024-03-31",
+    title: "Runners-up at the first CS2 Major",
+    summary:
+      "FaZe reaches the final of the PGL Major Copenhagen, the first Counter-Strike 2 Major, and loses 2–1 to Natus Vincere.",
+    category: "esports",
+    memberSlugs: ["karrigan"],
+    sources: [
+      { label: "Escorenews", url: "https://escorenews.com/en/csgo/news/57310-navi-wins-first-cs2-major-in-history-pgl-copenhagen-2024-over-faze-clan" },
+    ],
+  },
+  {
+    id: "iem-chengdu-2024",
+    date: "2024-04-01",
+    datePrecision: "month",
+    title: "IEM Chengdu 2024 champions",
+    summary: "FaZe wins IEM Chengdu, its eighth straight final in the CS2 era.",
+    category: "esports",
+    memberSlugs: ["karrigan"],
+    sources: [
+      { label: "Dust2.us", url: "https://dust2.us/news/47386/faze-takes-lead-in-intel-grand-slam-race" },
+      {
+        label: "bo3.gg",
+        url: "https://bo3.gg/articles/as-the-year-began-so-it-ends-faze-spirit-in-the-final-of-perfect-world-shanghai-major-2024",
+      },
+    ],
+  },
+  {
+    id: "faze-media-formed",
+    date: "2024-05-14",
+    title: "FaZe Media is formed",
+    summary:
+      "FaZe's creator business is spun into FaZe Media, led by Banks, with investor Matt Kalish putting in $11 million for 49%. In June Banks buys GameSquare's 25.5% stake.",
+    category: "business",
+    memberSlugs: ["banks"],
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "shanghai-major-2024",
+    date: "2024-12-15",
+    title: "Second Major final of the year",
+    summary:
+      "FaZe loses the Perfect World Shanghai Major final 2–1 to Team Spirit, its second Major final defeat of 2024.",
+    category: "esports",
+    memberSlugs: ["karrigan"],
+    sources: [
+      { label: "bo3.gg", url: "https://bo3.gg/articles/thye-end-of-the-faze-era-the-results-of-perfect-world-shanghai-major-2024" },
+      { label: "EarlyGame", url: "https://earlygame.com/news/counter-strike-2/cs2-spirit-take-down-faze-crowned-champions-at-perfect-world-shanghai-major" },
+    ],
+  },
+  {
+    id: "six-invitational-2025",
+    date: "2025-02-16",
+    title: "Six Invitational 2025 champions: $1,000,000",
+    summary:
+      "A year after losing the final, FaZe's Brazilian Siege roster beats Team BDS 3–1 in Boston for the organization's first Rainbow Six world title and $1 million. Handy is named MVP.",
+    category: "esports",
+    sources: [
+      { label: "SiegeGG", url: "https://siege.gg/na/faze-clan-wins-six-invitational-2025" },
+      { label: "Sportskeeda", url: "https://sportskeeda.com/esports/faze-clan-rainbow-six-invitational-2025-champion" },
+    ],
+  },
+  {
+    id: "gamesquare-exits-media",
+    date: "2025-03-31",
+    title: "GameSquare sells its FaZe Media stake",
+    summary:
+      "GameSquare divests its remaining 25.5% of FaZe Media but keeps FaZe Esports, splitting the creator brand from the competitive teams.",
+    category: "business",
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "banks-steps-down",
+    date: "2025-07-28",
+    title: "Banks steps down as CEO",
+    summary:
+      "Banks resigns as CEO amid accusations that fans were scammed through the MLG meme coin.",
+    category: "controversy",
+    memberSlugs: ["banks"],
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
+  {
+    id: "faze-vegas",
+    date: "2025-09-19",
+    title: "Atlanta FaZe becomes FaZe Vegas",
+    summary: "FaZe's Call of Duty League team relocates from Atlanta to Las Vegas and is renamed FaZe Vegas.",
+    category: "esports",
+    sources: [
+      { label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" },
+      { label: "Call of Duty Esports Wiki: FaZe Clan", url: "https://cod-esports.fandom.com/wiki/FaZe_Clan" },
+    ],
+  },
+  {
+    id: "core-formed",
+    date: "2026-04-30",
+    title: "Former FaZe creators form CORE",
+    summary:
+      "Stable Ronaldo, Adapt, Marlon, Lacy, JasonTheWeen and Silky launch a new group, CORE. Its YouTube channel is briefly taken down for automated security flags, then restored.",
+    category: "creators",
+    memberSlugs: ["jasontheween"],
+    sources: [{ label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" }],
+  },
 ];

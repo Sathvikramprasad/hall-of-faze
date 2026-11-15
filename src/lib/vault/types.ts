@@ -81,3 +81,17 @@ export type MonthlyTop3Entry = {
   votes: number;
   href?: string;
 };
+
+/**
+ * Background facts the Historian can use that aren't shown on the timeline:
+ * smaller results, partnerships, rosters, figures, and details whose exact
+ * date or accuracy is uncertain (say so in `text`).
+ */
+export type VaultNote = {
+  id: string;
+  topic: string;
+  /** Free text, e.g. "2019", "Dec 2019 (some sources say Apr 2020)". */
+  when?: string;
+  text: string;
+  sources: [SourceLink, ...SourceLink[]];
+};

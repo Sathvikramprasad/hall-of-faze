@@ -48,4 +48,17 @@ export const vaultStats: VaultStat[] = [
       },
     ],
   },
+  {
+    id: "subs-2023",
+    date: "2023-10-21",
+    value: "8.57M",
+    label: "YouTube subscribers",
+    note: "The day after Banks takes over as CEO",
+    sources: [
+      {
+        label: "My Favorite Things Wiki: FaZe Clan",
+        url: "https://my-favorite-things.fandom.com/wiki/FaZe_Clan",
+      },
+    ],
+  },
 ];
