@@ -71,6 +71,12 @@ export type MemberProfile = {
   bio: string;
   sources: [SourceLink, ...SourceLink[]];
   videos: VideoEmbed[];
+  /**
+   * Their own channels, for live status and current YouTube stats. Only add
+   * channels you've confirmed belong to them: a YouTube channel id (UC…) or
+   * @handle, and a Twitch login.
+   */
+  channels?: { twitch?: string; youtubeChannelId?: string; youtubeHandle?: string };
 };
 
 export type MonthlyTop3Entry = {

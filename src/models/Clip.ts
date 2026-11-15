@@ -28,6 +28,24 @@ export type ClipStatusChange = {
   reason?: string;
 };
 
+/**
+ * Set for clips entered by link instead of uploaded: a Twitch clip or a YouTube
+ * video, played in that platform's own player. Nothing is stored in our bucket.
+ */
+export type ClipSource = {
+  platform: "twitch" | "youtube";
+  /** Twitch clip slug or YouTube video id. */
+  id: string;
+  url: string;
+  /** Twitch broadcaster id or YouTube channel id. */
+  channelId: string;
+  channelName: string;
+  thumbnailUrl: string;
+  durationSeconds: number | null;
+  /** True when the submitter proved they own `channelId` (Connect Twitch / Connect YouTube). */
+  verifiedOwner: boolean;
+};
+
 export type AiModerationResult = {
   verdict: "approve" | "review" | "reject";
   confidence: number;
@@ -47,8 +65,11 @@ export interface IClip {
   uploaderId: string;
   status: ClipStatus;
   statusHistory: ClipStatusChange[];
-  video: ClipMedia & { originalName: string; durationSeconds: number | null };
-  thumbnail: ClipMedia;
+  /** Uploaded files. Absent for clips entered by link (see `source`). */
+  video?: ClipMedia & { originalName: string; durationSeconds: number | null };
+  thumbnail?: ClipMedia;
+  /** Twitch / YouTube link the clip was entered with, or null for uploads. */
+  source?: ClipSource | null;
   /** Manual moderation decision. */
   moderation: {
     reviewedBy: string | null;
@@ -69,11 +90,30 @@ export interface IClip {
 
 export type ClipDocument = IClip & { _id: Types.ObjectId };
 
+/** Uploaded files are required unless the clip was entered by link. */
+function isUpload(this: { source?: ClipSource | null }) {
+  return !this.source;
+}
+
 const mediaFields = {
-  key: { type: String, required: true },
-  contentType: { type: String, required: true },
-  size: { type: Number, required: true, min: 1 },
+  key: { type: String, required: isUpload },
+  contentType: { type: String, required: isUpload },
+  size: { type: Number, required: isUpload, min: 1 },
 };
+
+const ClipSourceSchema = new Schema<ClipSource>(
+  {
+    platform: { type: String, enum: ["twitch", "youtube"], required: true },
+    id: { type: String, required: true, maxlength: 120 },
+    url: { type: String, required: true, maxlength: 500 },
+    channelId: { type: String, required: true, maxlength: 120 },
+    channelName: { type: String, default: "", maxlength: 200 },
+    thumbnailUrl: { type: String, default: "", maxlength: 1000 },
+    durationSeconds: { type: Number, default: null },
+    verifiedOwner: { type: Boolean, default: false },
+  },
+  { _id: false },
+);
 
 const AiModerationSchema = new Schema<AiModerationResult>(
   {
@@ -115,14 +155,15 @@ const ClipSchema = new Schema<IClip>(
     },
     video: {
       ...mediaFields,
-      contentType: { type: String, required: true, enum: VIDEO_TYPES },
+      contentType: { type: String, required: isUpload, enum: VIDEO_TYPES },
       originalName: { type: String, default: "", maxlength: 255 },
       durationSeconds: { type: Number, default: null },
     },
     thumbnail: {
       ...mediaFields,
-      contentType: { type: String, required: true, enum: THUMBNAIL_TYPES },
+      contentType: { type: String, required: isUpload, enum: THUMBNAIL_TYPES },
     },
+    source: { type: ClipSourceSchema, default: null },
     moderation: {
       reviewedBy: { type: String, default: null },
       reviewedAt: { type: Date, default: null },
@@ -146,6 +187,8 @@ ClipSchema.index({ status: 1, createdAt: 1 });
 // cleanupAbandonedUploads() in src/lib/clips.ts. Not a TTL index on purpose:
 // a TTL delete would orphan the objects in storage.
 ClipSchema.index({ status: 1, processingExpiresAt: 1 });
+// Duplicate check for clips entered by link (same Twitch clip / YouTube video).
+ClipSchema.index({ "source.platform": 1, "source.id": 1, challengeId: 1 });
 
 export const Clip: Model<IClip> =
   (mongoose.models.Clip as Model<IClip> | undefined) ?? mongoose.model<IClip>("Clip", ClipSchema);

@@ -83,7 +83,24 @@ function prompt(clip: ClipDocument, inputs: string[]): string {
     "",
     `Title: ${clip.title}`,
     `Description: ${clip.description || "(none)"}`,
+    ...(clip.source
+      ? [`Entered by link: ${clip.source.platform === "twitch" ? "Twitch clip" : "YouTube video"} from the channel "${clip.source.channelName}".`]
+      : []),
   ].join("\n");
+}
+
+/** Thumbnail of a clip entered by link, fetched from Twitch's / YouTube's image CDN. */
+async function fetchSourceThumbnail(url: string): Promise<{ mimeType: string; data: string } | null> {
+  try {
+    const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(10_000) });
+    const mimeType = (res.headers.get("content-type") ?? "").split(";")[0].trim();
+    if (!res.ok || !["image/jpeg", "image/png", "image/webp"].includes(mimeType)) return null;
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (bytes.byteLength === 0 || bytes.byteLength >= THUMBNAIL_MAX_BYTES) return null;
+    return { mimeType, data: Buffer.from(bytes).toString("base64") };
+  } catch {
+    return null;
+  }
 }
 
 type GeminiPart = { text?: string };
@@ -113,16 +130,31 @@ async function callGemini(clip: ClipDocument): Promise<AiModerationResult> {
   if (!apiKey) throw new AiModerationError("GEMINI_API_KEY is not set.");
   const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
 
-  const inputs = ["text", "thumbnail"];
+  const inputs = ["text"];
   const parts: Record<string, unknown>[] = [];
 
-  const thumb = await readObject(clip.thumbnail.key, THUMBNAIL_MAX_BYTES);
-  parts.push({ inlineData: { mimeType: clip.thumbnail.contentType, data: Buffer.from(thumb).toString("base64") } });
+  if (clip.source) {
+    // Link clips: the platform's thumbnail, and for YouTube the video itself
+    // (Gemini can watch public YouTube videos by URL). Twitch clips can't be fetched.
+    const thumb = clip.source.thumbnailUrl ? await fetchSourceThumbnail(clip.source.thumbnailUrl) : null;
+    if (thumb) {
+      parts.push({ inlineData: thumb });
+      inputs.push("thumbnail");
+    }
+    if (clip.source.platform === "youtube") {
+      parts.push({ fileData: { fileUri: `https://www.youtube.com/watch?v=${clip.source.id}` } });
+      inputs.push("video");
+    }
+  } else if (clip.thumbnail?.key && clip.video?.key) {
+    const thumb = await readObject(clip.thumbnail.key, THUMBNAIL_MAX_BYTES);
+    parts.push({ inlineData: { mimeType: clip.thumbnail.contentType, data: Buffer.from(thumb).toString("base64") } });
+    inputs.push("thumbnail");
 
-  if (clip.video.size <= INLINE_VIDEO_MAX_BYTES) {
-    const video = await readObject(clip.video.key, INLINE_VIDEO_MAX_BYTES);
-    parts.push({ inlineData: { mimeType: clip.video.contentType, data: Buffer.from(video).toString("base64") } });
-    inputs.push("video");
+    if (clip.video.size <= INLINE_VIDEO_MAX_BYTES) {
+      const video = await readObject(clip.video.key, INLINE_VIDEO_MAX_BYTES);
+      parts.push({ inlineData: { mimeType: clip.video.contentType, data: Buffer.from(video).toString("base64") } });
+      inputs.push("video");
+    }
   }
   parts.push({ text: prompt(clip, inputs) });
 

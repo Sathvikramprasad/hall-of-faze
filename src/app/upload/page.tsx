@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import UploadForm from "@/components/clips/UploadForm";
+import ClipSubmitTabs from "@/components/clips/ClipSubmitTabs";
 
 export const metadata: Metadata = {
   title: "Upload a clip · Hall of FaZe",
-  description: "Submit a clip with a custom thumbnail for review.",
+  description: "Upload a clip with a custom thumbnail, or enter one by Twitch or YouTube link.",
 };
 
 export default function UploadPage() {
@@ -17,9 +17,10 @@ export default function UploadPage() {
       </nav>
       <h1 className="text-3xl font-bold tracking-tight">Upload a clip</h1>
       <p className="mt-2 mb-8 opacity-70">
-        Add a title, your video and a custom thumbnail. A moderator reviews every clip before it goes public.
+        Upload a video with a custom thumbnail, or paste a link to a Twitch clip or YouTube video. A moderator
+        reviews every clip before it goes public.
       </p>
-      <UploadForm />
+      <ClipSubmitTabs />
     </main>
   );
 }

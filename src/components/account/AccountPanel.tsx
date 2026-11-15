@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { announceAuthChange } from "@/lib/client-auth";
 import type { AccountUser } from "@/types";
+import ChannelsSection from "@/components/profile/ChannelsSection";
 import MyClips from "@/components/profile/MyClips";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ResetPasswordForm from "@/components/profile/ResetPasswordForm";
@@ -132,6 +133,7 @@ export default function AccountPanel({ nextPath = null }: { nextPath?: string | 
       <Shell title="My Profile" wide>
         <div className="flex flex-col gap-6">
           <ProfileHeader user={user} onUserChange={setUser} onSignOut={signOut} signingOut={busy} />
+          <ChannelsSection user={user} onUserChange={setUser} />
           <MyClips />
           <SecuritySection email={user.email} />
           {user.role === "moderator" && (

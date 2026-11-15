@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
+import { LiveNow, LiveNowSkeleton } from "@/components/creator/LiveNow";
 import { MonthlyTop3, MonthlyTop3Skeleton } from "@/components/home/MonthlyTop3";
 import { PageShell } from "@/components/layout/PageShell";
 import { LEGACY_CHALLENGE_HREF } from "@/lib/site";
@@ -59,6 +60,11 @@ export default function Home() {
       </section>
 
       <div className="mx-auto max-w-6xl space-y-20 px-4 py-16 sm:px-6">
+        {/* Live now on Twitch (hidden when Twitch isn't configured) */}
+        <Suspense fallback={<LiveNowSkeleton />}>
+          <LiveNow />
+        </Suspense>
+
         {/* Monthly Top 3 */}
         <section aria-labelledby="top3-heading">
           <Suspense fallback={<MonthlyTop3Skeleton />}>

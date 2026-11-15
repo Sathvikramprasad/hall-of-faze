@@ -43,8 +43,29 @@ export function serializeUser(user: HydratedDocument<IUser>): AccountUser {
     },
     emailVerified: isEmailVerified(user),
     avatarUrl: avatarUrlFor(user),
+    connections: serializeConnections(user),
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
+  };
+}
+
+export function serializeConnections(user: Pick<IUser, "connections">): AccountUser["connections"] {
+  const twitch = user.connections?.twitch;
+  const youtube = user.connections?.youtube;
+  return {
+    ...(twitch
+      ? { twitch: { login: twitch.login, displayName: twitch.displayName, verifiedAt: new Date(twitch.verifiedAt).toISOString() } }
+      : {}),
+    ...(youtube
+      ? {
+          youtube: {
+            channelId: youtube.channelId,
+            title: youtube.title,
+            handle: youtube.handle ?? null,
+            verifiedAt: new Date(youtube.verifiedAt).toISOString(),
+          },
+        }
+      : {}),
   };
 }
 

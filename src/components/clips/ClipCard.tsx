@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PlatformBadge, VerifiedBadge } from "@/components/creator/CreatorBadges";
 import type { PublicClip } from "@/lib/clip-types";
 
 function formatDuration(seconds: number | null): string | null {
@@ -27,9 +28,11 @@ export default function ClipCard({ clip }: { clip: PublicClip }) {
             {duration}
           </span>
         )}
+        {clip.source && <PlatformBadge platform={clip.source.platform} className="absolute left-2 top-2" />}
       </div>
       <div className="flex flex-col gap-1 p-3">
         <h3 className="line-clamp-2 font-semibold">{clip.title}</h3>
+        {clip.source?.verifiedOwner && <VerifiedBadge className="self-start" />}
         <p className="text-xs opacity-60">
           {clip.voteCount} {clip.voteCount === 1 ? "vote" : "votes"} ·{" "}
           {new Date(clip.approvedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}

@@ -1,6 +1,12 @@
 import mongoose, { Schema, type Model, type Types } from "mongoose";
 import type { Role, SocialLinks } from "@/types";
 
+/** A Twitch or YouTube account the user proved they own by signing in there. */
+export interface IConnections {
+  twitch?: { id: string; login: string; displayName: string; verifiedAt: Date } | null;
+  youtube?: { channelId: string; title: string; handle: string | null; verifiedAt: Date } | null;
+}
+
 export interface IUser {
   _id: Types.ObjectId;
   email: string;
@@ -8,6 +14,8 @@ export interface IUser {
   displayName: string;
   role: Role;
   socialLinks: SocialLinks;
+  /** Verified creator accounts ("Connect Twitch" / "Connect YouTube"). */
+  connections?: IConnections;
   /**
    * False until the emailed code is entered. Accounts created before email
    * verification existed have no value and are treated as verified.
@@ -32,6 +40,32 @@ const userSchema = new Schema<IUser>(
     socialLinks: {
       twitch: { type: String },
       youtube: { type: String },
+    },
+    connections: {
+      twitch: {
+        type: new Schema(
+          {
+            id: { type: String, required: true },
+            login: { type: String, required: true },
+            displayName: { type: String, required: true },
+            verifiedAt: { type: Date, required: true },
+          },
+          { _id: false },
+        ),
+        default: null,
+      },
+      youtube: {
+        type: new Schema(
+          {
+            channelId: { type: String, required: true },
+            title: { type: String, required: true },
+            handle: { type: String, default: null },
+            verifiedAt: { type: Date, required: true },
+          },
+          { _id: false },
+        ),
+        default: null,
+      },
     },
     emailVerified: { type: Boolean },
     emailVerifiedAt: { type: Date, default: null },

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 import ClipPlayer from "@/components/clips/ClipPlayer";
+import { PlatformBadge, VerifiedBadge } from "@/components/creator/CreatorBadges";
+import ExternalPlayer from "@/components/creator/ExternalPlayer";
 import { formatBytes, type ClipStatus } from "@/lib/clip-rules";
 import type { ModerationAction, ModeratorClip } from "@/lib/clip-types";
 
@@ -272,14 +274,16 @@ function ReviewCard({
   return (
     <article className="grid gap-5 rounded-xl border border-current/15 p-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
       <div className="flex flex-col gap-3">
-        {canPlay ? (
+        {canPlay && clip.source ? (
+          <ExternalPlayer kind="clip" platform={clip.source.platform} id={clip.source.id} title={clip.title} />
+        ) : canPlay ? (
           <ClipPlayer src={clip.videoUrl} poster={clip.thumbnailUrl} title={clip.title} />
         ) : (
           <div className="flex aspect-video items-center justify-center rounded-xl bg-black/10 text-sm opacity-70 dark:bg-white/10">
             Upload not finished
           </div>
         )}
-        {canPlay && (
+        {canPlay && clip.thumbnail && (
           <div className="flex items-center gap-3 text-xs opacity-80">
             {/* eslint-disable-next-line @next/next/no-img-element -- access-checked redirect to a signed URL */}
             <img src={clip.thumbnailUrl} alt="Custom thumbnail" className="h-14 w-24 rounded object-cover" />
@@ -303,10 +307,25 @@ function ReviewCard({
           <dt>Submitted</dt>
           <dd>{new Date(clip.createdAt).toLocaleString()}</dd>
           <dt>Video</dt>
-          <dd>
-            {clip.video.contentType} · {formatBytes(clip.video.size)}
-            {clip.durationSeconds ? ` · ${Math.round(clip.durationSeconds)} s` : ""}
-          </dd>
+          {clip.source ? (
+            <dd className="flex flex-wrap items-center gap-1.5">
+              <PlatformBadge platform={clip.source.platform} />
+              <a href={clip.source.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+                {clip.source.channelName}&apos;s channel
+              </a>
+              {clip.durationSeconds ? ` · ${Math.round(clip.durationSeconds)} s` : ""}
+              {clip.source.verifiedOwner ? (
+                <VerifiedBadge label="Submitter owns this channel" />
+              ) : (
+                <span className="text-amber-300">· not from the submitter&apos;s verified channel</span>
+              )}
+            </dd>
+          ) : (
+            <dd>
+              {clip.video ? `${clip.video.contentType} · ${formatBytes(clip.video.size)}` : "—"}
+              {clip.durationSeconds ? ` · ${Math.round(clip.durationSeconds)} s` : ""}
+            </dd>
+          )}
           {clip.challengeId && (
             <>
               <dt>Challenge</dt>
