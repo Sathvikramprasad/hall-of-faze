@@ -4,8 +4,8 @@ import AccountPanel from "@/components/account/AccountPanel";
 import { safeAuthReturnPath } from "@/lib/auth-navigation";
 
 export const metadata: Metadata = {
-  title: "Account · Hall of FaZe",
-  description: "Sign in to upload clips and vote in Hall of FaZe challenges.",
+  title: "My Profile · Hall of FaZe",
+  description: "Sign in, manage your profile and see every clip you've submitted to Hall of FaZe challenges.",
 };
 
 type SearchParams = Promise<{ next?: string | string[] }>;
@@ -21,9 +21,7 @@ async function AccountContent({ searchParams }: { searchParams: SearchParams }) 
 
 export default function AccountPage({ searchParams }: { searchParams: SearchParams }) {
   return (
-    <main className="mx-auto w-full max-w-xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight">Your account</h1>
-      <p className="mt-2 mb-8 text-muted">One account powers clip uploads, community votes, and moderator access.</p>
+    <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
       <Suspense fallback={<p className="text-sm text-muted">Loading account…</p>}>
         <AccountContent searchParams={searchParams} />
       </Suspense>

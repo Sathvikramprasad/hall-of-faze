@@ -7,5 +7,5 @@ export const NAV_LINKS = [
   { href: LEGACY_CHALLENGE_HREF, label: "Challenges" },
   { href: "/clips", label: "Clips" },
   { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/account", label: "Account" },
+  { href: "/account", label: "My Profile" },
 ] as const;

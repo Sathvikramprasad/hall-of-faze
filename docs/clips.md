@@ -120,7 +120,7 @@ Displayed totals are aggregated from `Vote` records, the same source used by the
 |---|---|---|
 | `POST /api/clips` | authenticated user | Start upload → `201 { clip, uploads: { video, thumbnail }, expiresInSeconds }` |
 | `POST /api/clips/<id>/complete` | uploader | Verify stored files → `pending_review` |
-| `DELETE /api/clips/<id>` | uploader (not approved) / moderator | Delete clip + files |
+| `DELETE /api/clips/<id>` | uploader (any status) / moderator | Delete clip, its votes and its files |
 | `GET /api/clips/<id>/media/{video,thumbnail}` | per access rules | 302 to signed URL |
 | `GET /api/admin/clips/session` | — | Current shared-session moderator status |
 | `GET /api/admin/clips?status=` | moderator | Queue + counts |

@@ -4,6 +4,8 @@ import { fail, hasValidOrigin, ok, parseObject } from "@/lib/api";
 import { hashPassword, serializeUser, startSession } from "@/lib/auth";
 import { clientIdentifier, consumeRateLimit } from "@/lib/rate-limit";
 import UserModel from "@/models/User";
+import { issueCode } from "@/lib/account-codes";
+import { isEmailConfigured } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   if (!hasValidOrigin(request)) return fail(403, "FORBIDDEN", "Invalid request origin.");
@@ -31,11 +33,27 @@ export async function POST(request: NextRequest) {
       response.headers.set("Retry-After", String(rateLimit.retryAfterSeconds));
       return response;
     }
+    const verificationEnabled = isEmailConfigured();
     const user = await UserModel.create({
       email, displayName, passwordHash: await hashPassword(password), role: "user", socialLinks: {},
+      // Keep registration usable on deployments that have not configured a
+      // transactional email provider yet. Verification turns on automatically
+      // as soon as RESEND_API_KEY and EMAIL_FROM are present.
+      emailVerified: !verificationEnabled,
+      emailVerifiedAt: verificationEnabled ? null : new Date(),
     });
+    // Email the verification code. If sending fails the account still exists and
+    // the verify screen offers "Send a new code".
+    let codeSent = false;
+    if (verificationEnabled) {
+      try {
+        codeSent = (await issueCode(user, "verify_email")).status === "sent";
+      } catch (emailError) {
+        console.error("Sending the verification email failed:", emailError);
+      }
+    }
     const serialized = serializeUser(user);
-    const response = ok({ user: serialized, authenticated: true }, 201);
+    const response = ok({ user: serialized, authenticated: true, verificationEmailSent: codeSent }, 201);
     try {
       await startSession(response, user._id);
       return response;
