@@ -12,6 +12,7 @@ export type VaultCategory =
   | "esports"
   | "business"
   | "creators"
+  | "culture"
   | "controversy";
 
 export type VaultEntry = {
@@ -29,6 +30,8 @@ export type VaultEntry = {
   memberSlugs?: string[];
   /** Every entry needs at least one source. */
   sources: [SourceLink, ...SourceLink[]];
+  /** Optional historical clip shown with the entry. Credit the original uploader. */
+  video?: VideoEmbed;
 };
 
 export type VideoEmbed = {

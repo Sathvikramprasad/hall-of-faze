@@ -1,19 +1,64 @@
 @import "tailwindcss";
 
 /*
-  Hall of FaZe theme. Dark-only for now.
-  Contrast (WCAG AA, checked against --background):
-    --accent        text/borders on dark   ~6:1
-    --accent-fill   behind white text      ~5.4:1
+  Hall of FaZe theme, from the official FaZe Clan brand toolkit (2022 guidelines).
+
+  Brand colors: Red Alert #E4002B, Black #111111, White #FFFFFF.
+    --accent-fill  Red Alert, behind white text           ~4.9:1 (AA)
+    --accent       lighter red for small text on Black    ~6:1 (AA)
+                   (Red Alert itself is only ~3.9:1 on Black, so it's
+                   used for fills and large display type, not small text.)
+
+  Fonts: the toolkit's general-use fonts that are licensed for the web
+  (SIL Open Font License): Anton for display, Source Sans Pro for body.
+  Not used on the site: Compressa (desktop-only license), the FaZed Sans
+  sample and Batman Forever (no web license included).
+
+  Logo and camo rules followed in the components: white-F "Logo 1" on dark
+  backgrounds; one-color logo only between 40px and 60px wide; never
+  recolored, outlined, distorted or rotated; Tiger Camo shown at 50–150%
+  of its native size with no effects applied.
 */
+
+@font-face {
+  font-family: "Anton";
+  src: url("/brand/fonts/Anton-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Sans Pro";
+  src: url("/brand/fonts/SourceSansPro-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Sans Pro";
+  src: url("/brand/fonts/SourceSansPro-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Sans Pro";
+  src: url("/brand/fonts/SourceSansPro-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Sans Pro";
+  src: url("/brand/fonts/SourceSansPro-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-display: swap;
+}
+
 :root {
-  --background: #0b0b0d;
-  --surface: #16161a;
-  --foreground: #f4f4f5;
-  --muted: #a1a1aa;
-  --accent: #ff4d55;
-  --accent-fill: #d01c25;
-  --accent-fill-strong: #a8131a;
+  --background: #111111;
+  --surface: #1c1c1c;
+  --foreground: #ffffff;
+  --muted: #a8a8a8;
+  --accent: #ff5266;
+  --accent-fill: #e4002b;
+  --accent-fill-strong: #b80023;
 }
 
 @theme inline {
@@ -24,8 +69,9 @@
   --color-accent: var(--accent);
   --color-accent-fill: var(--accent-fill);
   --color-accent-fill-strong: var(--accent-fill-strong);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Source Sans Pro", Arial, Helvetica, sans-serif;
+  --font-display: "Anton", "Source Sans Pro", Impact, sans-serif;
+  --font-mono: var(--font-geist-mono, ui-monospace), ui-monospace, monospace;
 }
 
 html {
@@ -42,7 +88,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: "Source Sans Pro", Arial, Helvetica, sans-serif;
 }
 
 :focus-visible {
@@ -50,10 +96,11 @@ body {
   outline-offset: 2px;
 }
 
-.hero-glow {
-  background-image: radial-gradient(
-    ellipse at top,
-    color-mix(in oklab, var(--accent-fill) 30%, transparent),
-    transparent 60%
-  );
+/* Red/black Tiger Camo at 50% of its native 1365px width (allowed range: 50–150%). */
+.faze-camo {
+  background-color: #111111;
+  background-image: url("/brand/faze-tiger-camo-red.jpg");
+  background-size: 683px auto;
+  background-position: center;
+  background-repeat: repeat;
 }

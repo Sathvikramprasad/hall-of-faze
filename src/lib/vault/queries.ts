@@ -19,6 +19,7 @@ export const CATEGORY_LABELS: Record<VaultCategory, string> = {
   esports: "Esports",
   business: "Business",
   creators: "Creators",
+  culture: "Culture",
   controversy: "Controversy",
 };
 
@@ -111,21 +112,35 @@ export function findRelatedEntries(question: string, limit = 3): VaultEntry[] {
     memberProfiles.map((m) => [m.slug, `${m.handle} ${m.realName ?? ""} ${m.role}`]),
   );
 
-  return getVaultEntries()
-    .map((entry) => {
-      const titleTokens = tokenize(entry.title);
-      const bodyTokens = tokenize(
-        [
-          entry.summary,
-          entry.date.slice(0, 4),
-          CATEGORY_LABELS[entry.category],
-          ...(entry.memberSlugs ?? []).map((slug) => memberText.get(slug) ?? ""),
-        ].join(" "),
-      );
+  const docs = getVaultEntries().map((entry) => ({
+    entry,
+    titleTokens: tokenize(entry.title),
+    bodyTokens: tokenize(
+      [
+        entry.summary,
+        entry.date.slice(0, 4),
+        CATEGORY_LABELS[entry.category],
+        ...(entry.memberSlugs ?? []).map((slug) => memberText.get(slug) ?? ""),
+      ].join(" "),
+    ),
+  }));
+  const matches = (tokens: string[], s: string) => tokens.some((t) => t.startsWith(s));
+
+  // Rare words matter more: "halo" (1 entry) should outrank "win" (many entries).
+  const weight = new Map(
+    stems.map((s) => {
+      const hits = docs.filter((d) => matches(d.titleTokens, s) || matches(d.bodyTokens, s)).length;
+      return [s, hits > 0 ? 1 / hits : 0];
+    }),
+  );
+
+  return docs
+    .map(({ entry, titleTokens, bodyTokens }) => {
       // Title hits count double so "go public" prefers the Nasdaq entry.
       const score = stems.reduce((total, s) => {
-        if (titleTokens.some((t) => t.startsWith(s))) return total + 2;
-        if (bodyTokens.some((t) => t.startsWith(s))) return total + 1;
+        const w = weight.get(s) ?? 0;
+        if (matches(titleTokens, s)) return total + 2 * w;
+        if (matches(bodyTokens, s)) return total + w;
         return total;
       }, 0);
       return { entry, score };

@@ -45,7 +45,7 @@ export default async function MemberPage(props: PageProps<"/vault/members/[slug]
         </Link>
 
         <header className="mt-6">
-          <h1 className="text-4xl font-black tracking-tight sm:text-5xl">{member.handle}</h1>
+          <h1 className="font-display text-5xl uppercase tracking-wide sm:text-6xl">{member.handle}</h1>
           {member.realName && <p className="mt-2 text-lg text-muted">{member.realName}</p>}
           <p className="mt-4 inline-flex flex-wrap gap-2 text-sm">
             <span className="rounded-full bg-accent/15 px-3 py-1 font-medium text-accent">{member.role}</span>
@@ -59,7 +59,7 @@ export default async function MemberPage(props: PageProps<"/vault/members/[slug]
         <SourceList sources={member.sources} className="mt-4" />
 
         <section aria-labelledby="videos-heading" className="mt-12">
-          <h2 id="videos-heading" className="text-2xl font-bold tracking-tight">
+          <h2 id="videos-heading" className="font-display text-3xl uppercase tracking-wide">
             From the archive
           </h2>
           {member.videos.length > 0 ? (
@@ -75,7 +75,7 @@ export default async function MemberPage(props: PageProps<"/vault/members/[slug]
 
         {entries.length > 0 && (
           <section aria-labelledby="moments-heading" className="mt-12">
-            <h2 id="moments-heading" className="text-2xl font-bold tracking-tight">
+            <h2 id="moments-heading" className="font-display text-3xl uppercase tracking-wide">
               In the timeline
             </h2>
             <ol className="mt-4 space-y-2">
