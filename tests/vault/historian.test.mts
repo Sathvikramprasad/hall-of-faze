@@ -89,6 +89,43 @@ test("answers FaZe Bot identity questions without a Vault fallback", async () =>
   }
 });
 
+test("answers broad member questions from the sourced member profile", async () => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
+
+  try {
+    const result = await askHistorian("What is FaZe Rug known for?");
+    assert.equal(result.status, "answered");
+    if (result.status !== "answered") return;
+
+    assert.match(result.answer, /Brian Awadis/);
+    assert.match(result.answer, /biggest individual YouTuber/);
+    assert.doesNotMatch(result.answer, /Tfue|contract fight/i);
+    assert.deepEqual(result.citations, []);
+    assert.ok(
+      result.webSources.some((source) => source.url === "https://en.wikipedia.org/wiki/FaZe_Rug"),
+    );
+  } finally {
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  }
+});
+
+test("never uses another member's timeline entry as a named-member fallback", async () => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
+
+  try {
+    const result = await askHistorian("What contract fight involved FaZe Rug?");
+    if (result.status !== "answered") return;
+    assert.doesNotMatch(result.answer, /Tfue|Turner Tenney/i);
+    assert.ok(result.citations.every((entry) => entry.id !== "tfue-lawsuit"));
+  } finally {
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  }
+});
+
 test("does not pretend live search is available without a Gemini key", async () => {
   const previousKey = process.env.GEMINI_API_KEY;
   delete process.env.GEMINI_API_KEY;
@@ -98,6 +135,49 @@ test("does not pretend live search is available without a Gemini key", async () 
     assert.equal(result.status, "unavailable");
     if (result.status === "unavailable") assert.equal(result.reason, "not_configured");
   } finally {
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  }
+});
+
+test("accepts a Gemini answer sourced by a curated member profile", async () => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousFetch = globalThis.fetch;
+  process.env.GEMINI_API_KEY = "test-key";
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: JSON.stringify({
+                    answerable: true,
+                    answer: "FaZe Rug is best known for his YouTube videos and is FaZe's biggest individual YouTuber.",
+                    citedIds: [],
+                    citedMemberSlugs: ["rug"],
+                  }),
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+
+  try {
+    const result = await askHistorian("What is FaZe Rug known for?");
+    assert.equal(result.status, "answered");
+    if (result.status !== "answered") return;
+    assert.match(result.answer, /FaZe Rug/);
+    assert.ok(
+      result.webSources.some((source) => source.url === "https://en.wikipedia.org/wiki/FaZe_Rug"),
+    );
+  } finally {
+    globalThis.fetch = previousFetch;
     if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
     else process.env.GEMINI_API_KEY = previousKey;
   }
