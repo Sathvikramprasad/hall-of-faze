@@ -57,14 +57,109 @@ test("answers sourced Vault questions when Gemini is not configured", async () =
   }
 });
 
-test("does not invent an answer outside the sourced Vault", async () => {
+test("does not pretend live search is available without a Gemini key", async () => {
   const previousKey = process.env.GEMINI_API_KEY;
   delete process.env.GEMINI_API_KEY;
 
   try {
+    const result = await askHistorian("What high school did FaZe Rug attend?");
+    assert.equal(result.status, "unavailable");
+    if (result.status === "unavailable") assert.equal(result.reason, "not_configured");
+  } finally {
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  }
+});
+
+test("uses Gemini web grounding for FaZe questions outside the Vault", async () => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousFetch = globalThis.fetch;
+  process.env.GEMINI_API_KEY = "test-key";
+
+  globalThis.fetch = async (input, init) => {
+    assert.match(String(input), /generativelanguage\.googleapis\.com/);
+    const body = JSON.parse(String(init?.body)) as {
+      tools?: { google_search?: object; url_context?: object }[];
+      contents?: { parts?: { text?: string }[] }[];
+    };
+    assert.deepEqual(body.tools, [{ google_search: {} }, { url_context: {} }]);
+    assert.match(body.contents?.[0]?.parts?.[0]?.text ?? "", /FaZe Rug/);
+
+    return new Response(
+      JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: JSON.stringify({
+                    answerable: true,
+                    answer: "FaZe Rug attended a public high school in San Diego.",
+                    citedIds: [],
+                  }),
+                },
+              ],
+            },
+            groundingMetadata: {
+              groundingChunks: [
+                {
+                  web: {
+                    uri: "https://example.com/faze-rug-profile",
+                    title: "FaZe Rug profile",
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  };
+
+  try {
+    const result = await askHistorian("What high school did FaZe Rug attend?");
+    assert.equal(result.status, "answered");
+    if (result.status !== "answered") return;
+    assert.match(result.answer, /FaZe Rug/);
+    assert.deepEqual(result.webSources, [
+      { label: "FaZe Rug profile", url: "https://example.com/faze-rug-profile" },
+    ]);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = previousKey;
+  }
+});
+
+test("rejects questions that Gemini identifies as unrelated to FaZe", async () => {
+  const previousKey = process.env.GEMINI_API_KEY;
+  const previousFetch = globalThis.fetch;
+  process.env.GEMINI_API_KEY = "test-key";
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: JSON.stringify({ answerable: false, answer: "", citedIds: [] }),
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+
+  try {
     const result = await askHistorian("What is the capital of France?");
     assert.equal(result.status, "unsupported");
+    if (result.status === "unsupported") assert.equal(result.reason, "outside_faze_scope");
   } finally {
+    globalThis.fetch = previousFetch;
     if (previousKey === undefined) delete process.env.GEMINI_API_KEY;
     else process.env.GEMINI_API_KEY = previousKey;
   }

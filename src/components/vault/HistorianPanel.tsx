@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useId, useState, type FormEvent } from "react";
-import type { HistorianResponse, RelatedEntry } from "@/lib/vault/historian";
+import type { HistorianResponse, RelatedEntry, WebSource } from "@/lib/vault/historian";
 
 const QUESTION_MAX = 500;
 
 const EXAMPLES = [
   "Who founded FaZe?",
-  "When did FaZe go public?",
-  "What happened with GameSquare?",
+  "Who are FaZe's current members?",
+  "What is FaZe Rug known for?",
 ];
 
 type State =
@@ -56,9 +56,8 @@ export function HistorianPanel() {
         Ask the Historian
       </h2>
       <p className="mt-2 text-muted">
-        Answers come from the sourced Vault entries on this page. Every answer
-        links to its references, and the Historian says when the Vault does not
-        cover something instead of guessing.
+        Ask about FaZe Clan, its teams, history, or members. The Historian checks
+        the sourced Vault first, then uses live web results for broader questions.
       </p>
 
       <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -71,7 +70,7 @@ export function HistorianPanel() {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           maxLength={QUESTION_MAX}
-          placeholder="e.g. When did FaZe win its first CS Major?"
+          placeholder="e.g. What is FaZe Adapt known for?"
           aria-describedby={hintId}
           className="min-h-12 flex-1 rounded-lg border border-white/15 bg-background px-4 text-base text-foreground placeholder:text-muted/70"
         />
@@ -102,7 +101,7 @@ export function HistorianPanel() {
       </div>
 
       <div aria-live="polite" className="mt-6">
-        {state.kind === "loading" && <p className="text-muted">Checking the Vault…</p>}
+        {state.kind === "loading" && <p className="text-muted">Checking the Vault and web…</p>}
         {state.kind === "network_error" && (
           <p className="text-muted">
             Couldn&apos;t reach the Historian. Check your connection and try again.
@@ -122,6 +121,9 @@ function HistorianResult({ result }: { result: HistorianResponse }) {
         {result.citations.length > 0 && (
           <EntryLinks heading="Based on these Vault entries" entries={result.citations} />
         )}
+        {result.webSources.length > 0 && (
+          <WebSourceLinks heading="Sources from live search" sources={result.webSources} />
+        )}
       </div>
     );
   }
@@ -129,13 +131,31 @@ function HistorianResult({ result }: { result: HistorianResponse }) {
   return (
     <div className="rounded-xl border border-white/15 bg-background/60 p-5">
       <p className="font-medium">{result.message}</p>
-      {result.related.length > 0 ? (
+      {result.related.length > 0 && (
         <EntryLinks heading="Related Vault entries" entries={result.related} />
-      ) : (
-        <p className="mt-2 text-sm text-muted">
-          No matching entries yet. Browse the timeline above instead.
-        </p>
       )}
+    </div>
+  );
+}
+
+function WebSourceLinks({ heading, sources }: { heading: string; sources: WebSource[] }) {
+  return (
+    <div className="mt-4">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{heading}</h3>
+      <ul className="mt-2 space-y-1 text-sm">
+        {sources.map((source) => (
+          <li key={source.url}>
+            <a
+              href={source.url}
+              target="_blank"
+              rel="noreferrer"
+              className="underline decoration-accent underline-offset-4 hover:text-accent"
+            >
+              {source.label} ↗
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

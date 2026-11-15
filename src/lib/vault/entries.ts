@@ -16,7 +16,7 @@ export const vaultEntries: VaultEntry[] = [
     date: "2010-05-30",
     title: "FaZe Sniping posts its first video",
     summary:
-      "Three Call of Duty players, CLipZ, House Cat and Resistance, launch a YouTube channel built around Modern Warfare 2 trickshots. The group later becomes FaZe Clan.",
+      "Three Call of Duty players, CLipZ, House Cat and Resistance, found FaZe Sniping and launch a YouTube channel built around Modern Warfare 2 trickshots. The group later becomes FaZe Clan.",
     category: "origins",
     memberSlugs: ["clipz", "housecat", "resistance"],
     sources: [
