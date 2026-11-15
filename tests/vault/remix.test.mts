@@ -14,6 +14,8 @@ test("maps the 2012 Vault moment to the existing Legacy Challenge", () => {
   assert.ok(fromVault);
   assert.equal(fromVault, fromChallenge);
   assert.equal(fromVault.id, "teamtage-2012-remix");
+  assert.equal(fromVault.challengeTitle, "Remix the Vault: 2012");
+  assert.match(fromVault.rules[1], /10–30 second/);
   assert.deepEqual(fromVault.clipRules, {
     minDurationSeconds: 10,
     maxDurationSeconds: 30,

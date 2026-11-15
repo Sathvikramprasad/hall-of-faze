@@ -24,7 +24,8 @@ function formatDeadline(value: string) {
 }
 
 /** Steps shown under "How to win"; falls back to the platform's real rules when none are stored. */
-function winningSteps(challenge: PublicChallenge): string[] {
+function winningSteps(challenge: PublicChallenge, mission: RemixMission | null): string[] {
+  if (mission) return mission.howToWin;
   if (challenge.howToWin.length > 0) return challenge.howToWin;
   const deadline = formatDeadline(challenge.endsAt);
   return [
@@ -102,6 +103,9 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
   if (!challenge) notFound();
   const entries = await getChallengeLeaderboard(challenge.id, challenge.roundKey, 24);
   const remixMission = getRemixMissionForChallenge(challenge.slug);
+  const challengeTitle = remixMission
+    ? `${challenge.sponsorName ? `${challenge.sponsorName} ` : ""}${remixMission.challengeTitle}`
+    : challenge.displayTitle;
 
   return (
     <>
@@ -121,8 +125,10 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
             </p>
           ) : null}
           <p className="text-sm font-bold uppercase tracking-[0.3em] text-red-500">Round {challenge.roundKey}</p>
-          <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">{challenge.displayTitle}</h1>
-          <p className="mt-5 max-w-3xl text-lg leading-8 text-zinc-300">{challenge.description}</p>
+          <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">{challengeTitle}</h1>
+          <p className="mt-5 max-w-3xl text-lg leading-8 text-zinc-300">
+            {remixMission?.description ?? challenge.description}
+          </p>
         </div>
         <dl className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-sm">
           <div>
@@ -131,7 +137,9 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
           </div>
           <div className="mt-5 border-t border-zinc-800 pt-5">
             <dt className="font-bold uppercase tracking-wider text-zinc-500">Eligibility</dt>
-            <dd className="mt-2 leading-6 text-zinc-200">{challenge.eligibilitySummary}</dd>
+            <dd className="mt-2 leading-6 text-zinc-200">
+              {remixMission?.eligibilitySummary ?? challenge.eligibilitySummary}
+            </dd>
           </div>
           {challenge.prizeSummary ? (
             <div className="mt-5 border-t border-zinc-800 pt-5">
@@ -171,7 +179,7 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
         <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-500">How to win</p>
         <h2 id="how-to-win-heading" className="mt-2 text-3xl font-black">From upload to Top 3</h2>
         <ol className="mt-6 grid gap-3 text-zinc-300 md:grid-cols-2">
-          {winningSteps(challenge).map((step, index) => (
+          {winningSteps(challenge, remixMission).map((step, index) => (
             <li key={`${index}-${step}`} className="flex gap-4 rounded-2xl bg-zinc-950 p-4">
               <span className="font-black text-[#c8ff3d]">{index + 1}</span>
               <span>{step}</span>
@@ -238,7 +246,7 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
       <section className="border-t border-zinc-800 pt-10">
         <h2 className="text-2xl font-black">Official rules</h2>
         <ol className="mt-5 grid gap-3 text-zinc-300">
-          {challenge.rules.map((rule, index) => (
+          {(remixMission?.rules ?? challenge.rules).map((rule, index) => (
             <li key={`${index}-${rule}`} className="flex gap-4 rounded-2xl bg-zinc-950 p-4">
               <span className="font-black text-red-500">{index + 1}</span>
               <span>{rule}</span>

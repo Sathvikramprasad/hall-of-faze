@@ -21,9 +21,11 @@ export type RemixMission = {
   id: string;
   vaultEntryId: string;
   challengeSlug: string;
+  challengeTitle: string;
   eyebrow: string;
   title: string;
   description: string;
+  eligibilitySummary: string;
   prompt: string;
   clipRules: {
     minDurationSeconds: number;
@@ -31,6 +33,8 @@ export type RemixMission = {
     maxBytes: number;
   };
   submissionGuide: string[];
+  rules: string[];
+  howToWin: string[];
   rubric: Array<{
     key: FazeDnaScoreKey;
     label: string;
@@ -44,10 +48,12 @@ export const REMIX_MISSIONS: readonly RemixMission[] = [
     id: "teamtage-2012-remix",
     vaultEntryId: "one-million-teamtage",
     challengeSlug: "legacy-clutch-challenge-2026",
+    challengeTitle: "Remix the Vault: 2012",
     eyebrow: "Remix the Vault · 2012",
     title: "Bring the 2012 Teamtage energy into 2026",
     description:
       "The one-million-subscriber Teamtage captured the skill, surprise and shared hype that defined early FaZe. Create the next moment in that lineage.",
+    eligibilitySummary: "Original 10–30 second gaming remixes approved before the voting deadline.",
     prompt:
       "Submit an original 10–30 second gaming clip featuring a clutch, trickshot or high-skill play that could earn a place in a modern FaZe montage.",
     clipRules: {
@@ -60,6 +66,23 @@ export const REMIX_MISSIONS: readonly RemixMission[] = [
       "Keep the story easy to understand: setup, payoff and reaction.",
       "Use a 10–30 second video no larger than 12 MB so Gemini can inspect the complete clip.",
       "Community votes decide the winner; the FaZe DNA score is coaching and entertainment, not the ranking.",
+    ],
+    rules: [
+      "Submit footage that you created or have permission to use.",
+      "Enter one original 10–30 second gameplay clip no larger than 12 MB (MP4, WebM or MOV), with a custom JPG, PNG or WebP thumbnail under 5 MB.",
+      "Clips must come from Counter-Strike 2, VALORANT or Call of Duty.",
+      "Gemini checks the complete clip. Only a high-confidence clean result may auto-approve; anything flagged, uncertain or failed goes to a human moderator and is never auto-rejected.",
+      "After approval, FaZe DNA provides coaching across skill, originality, hype and legacy connection. This score never affects rank.",
+      "One signed-in fan may vote once per clip during this round. Bots, multiple accounts and vote trading are disqualified.",
+      "Submissions and votes close at the deadline. Votes cast at or after the closing time do not count.",
+      "Voltline Energy is a fictional demo sponsor for this hackathon project. No purchase is necessary and no real prizes are awarded.",
+    ],
+    howToWin: [
+      "Watch the official 2012 one-million-subscriber Teamtage in the Vault mission.",
+      "Create an original 10–30 second clutch, trickshot or high-skill play no larger than 12 MB.",
+      "Pass Gemini's guarded safety check or human moderation, then unlock your FaZe DNA coaching card.",
+      "Share your approved entry and collect valid community votes. FaZe DNA never changes your rank.",
+      "Finish in the community-voted Top 3 before the round closes.",
     ],
     rubric: [
       {
