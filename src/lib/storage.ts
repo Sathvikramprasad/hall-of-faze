@@ -298,6 +298,17 @@ export async function readObject(key: string, maxBytes: number): Promise<Uint8Ar
   return new Uint8Array(await res.arrayBuffer());
 }
 
+/** Uploads a small object from the server (e.g. a profile picture). */
+export async function putObject(key: string, body: Uint8Array, contentType: string): Promise<void> {
+  const url = presignUrl(getStorageConfig(), { method: "PUT", key, expiresInSeconds: 300, contentType });
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: { "content-type": contentType },
+    body: Buffer.from(body),
+  });
+  if (!response.ok) throw new StorageRequestError(`PUT ${key} failed with HTTP ${response.status}`, response.status);
+}
+
 export async function deleteObject(key: string): Promise<void> {
   const req = signRequest(getStorageConfig(), "DELETE", key);
   const res = await fetch(req.url, { method: "DELETE", headers: req.headers, cache: "no-store" });

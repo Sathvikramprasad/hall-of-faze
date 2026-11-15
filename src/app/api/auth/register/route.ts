@@ -4,6 +4,7 @@ import { fail, hasValidOrigin, ok, parseObject } from "@/lib/api";
 import { hashPassword, serializeUser, startSession } from "@/lib/auth";
 import { clientIdentifier, consumeRateLimit } from "@/lib/rate-limit";
 import UserModel from "@/models/User";
+import { issueCode } from "@/lib/account-codes";
 
 export async function POST(request: NextRequest) {
   if (!hasValidOrigin(request)) return fail(403, "FORBIDDEN", "Invalid request origin.");
@@ -33,9 +34,18 @@ export async function POST(request: NextRequest) {
     }
     const user = await UserModel.create({
       email, displayName, passwordHash: await hashPassword(password), role: "user", socialLinks: {},
+      emailVerified: false,
     });
+    // Email the verification code. If sending fails the account still exists and
+    // the verify screen offers "Send a new code".
+    let codeSent = false;
+    try {
+      codeSent = (await issueCode(user, "verify_email")).status === "sent";
+    } catch (emailError) {
+      console.error("Sending the verification email failed:", emailError);
+    }
     const serialized = serializeUser(user);
-    const response = ok({ user: serialized, authenticated: true }, 201);
+    const response = ok({ user: serialized, authenticated: true, verificationEmailSent: codeSent }, 201);
     try {
       await startSession(response, user._id);
       return response;

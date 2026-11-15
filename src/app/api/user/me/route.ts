@@ -5,7 +5,8 @@ import { normalizeSocialLinks } from "@/lib/socials";
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
+    // Unverified accounts can load their profile so the verify-email screen can show.
+    const user = await getCurrentUser(request, { allowUnverified: true });
     if (!user) return fail(401, "UNAUTHENTICATED", "Sign in to continue.");
     return ok({ user: serializeUser(user) });
   } catch (error) {

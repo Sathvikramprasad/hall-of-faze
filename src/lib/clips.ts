@@ -327,9 +327,10 @@ export async function transitionClip(
   return updated;
 }
 
-/** Deletes a clip record and its stored objects. */
+/** Deletes a clip record, its votes and its stored objects. */
 export async function deleteClipAndMedia(clip: LeanClip): Promise<void> {
   await deleteObjectsQuietly([clip.video?.key, clip.thumbnail?.key]);
+  await Vote.deleteMany({ clipId: clip._id.toString() }).exec();
   await Clip.deleteOne({ _id: clip._id }).exec();
 }
 
