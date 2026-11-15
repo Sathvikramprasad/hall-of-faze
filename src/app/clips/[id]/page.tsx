@@ -5,6 +5,8 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import ClipPlayer from "@/components/clips/ClipPlayer";
 import FazeDnaCard from "@/components/clips/FazeDnaCard";
+import { PlatformBadge, VerifiedBadge } from "@/components/creator/CreatorBadges";
+import ExternalPlayer from "@/components/creator/ExternalPlayer";
 import { getViewer } from "@/lib/clip-identity";
 import { canViewClip, findClipById, getClipVoteCount, toOwnerClip } from "@/lib/clips";
 import type { ClipStatus } from "@/lib/clip-rules";
@@ -50,10 +52,25 @@ async function ClipDetail({ params }: { params: Promise<{ id: string }> }) {
         </div>
       )}
 
-      <ClipPlayer src={clip.videoUrl} poster={clip.thumbnailUrl} title={clip.title} />
+      {clip.source ? (
+        <ExternalPlayer kind="clip" platform={clip.source.platform} id={clip.source.id} title={clip.title} />
+      ) : (
+        <ClipPlayer src={clip.videoUrl} poster={clip.thumbnailUrl} title={clip.title} />
+      )}
 
       <header>
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{clip.title}</h1>
+        {clip.source && (
+          <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+            <PlatformBadge platform={clip.source.platform} />
+            <span className="opacity-70">From {clip.source.channelName}&apos;s channel</span>
+            {clip.source.verifiedOwner && <VerifiedBadge />}
+            <a href={clip.source.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 opacity-80 hover:opacity-100">
+              Watch on {clip.source.platform === "twitch" ? "Twitch" : "YouTube"}
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          </p>
+        )}
         <p className="mt-1 text-sm opacity-60">
           {clip.status === "approved" && clip.approvedAt
             ? `${clip.voteCount} ${clip.voteCount === 1 ? "vote" : "votes"} · approved ${new Date(clip.approvedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`

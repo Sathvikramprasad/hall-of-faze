@@ -104,3 +104,26 @@ body {
   background-position: center;
   background-repeat: repeat;
 }
+
+/* Home hero: gentle bounce on the scroll-down chevrons. */
+@keyframes hero-scroll-cue {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+}
+
+.hero-scroll-cue {
+  animation: hero-scroll-cue 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll-cue {
+    animation: none;
+  }
+}

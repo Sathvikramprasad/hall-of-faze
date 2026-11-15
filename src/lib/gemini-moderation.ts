@@ -98,7 +98,24 @@ function prompt(clip: ClipDocument, inputs: string[]): string {
     "",
     `Title: ${clip.title}`,
     `Description: ${clip.description || "(none)"}`,
+    ...(clip.source
+      ? [`Entered by link: ${clip.source.platform === "twitch" ? "Twitch clip" : "YouTube video"} from the channel "${clip.source.channelName}".`]
+      : []),
   ].join("\n");
+}
+
+/** Thumbnail of a clip entered by link, fetched from Twitch's / YouTube's image CDN. */
+async function fetchSourceThumbnail(url: string): Promise<{ mimeType: string; data: string } | null> {
+  try {
+    const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(10_000) });
+    const mimeType = (res.headers.get("content-type") ?? "").split(";")[0].trim();
+    if (!res.ok || !["image/jpeg", "image/png", "image/webp"].includes(mimeType)) return null;
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (bytes.byteLength === 0 || bytes.byteLength >= THUMBNAIL_MAX_BYTES) return null;
+    return { mimeType, data: Buffer.from(bytes).toString("base64") };
+  } catch {
+    return null;
+  }
 }
 
 type GeminiPart = { text?: string };
@@ -133,38 +150,58 @@ async function callGemini(clip: ClipDocument): Promise<AiModerationResult> {
   let uploadedFile: GeminiUploadedFile | null = null;
 
   try {
-    if (clip.video.size <= GEMINI_INLINE_VIDEO_MAX_BYTES) {
-      const video = await readObject(clip.video.key, GEMINI_INLINE_VIDEO_MAX_BYTES);
-      parts.push({
-        inlineData: {
+    if (clip.source) {
+      // Link clips: use the platform thumbnail and let Gemini inspect public
+      // YouTube videos by URL. Twitch does not expose the clip media directly.
+      const thumb = clip.source.thumbnailUrl
+        ? await fetchSourceThumbnail(clip.source.thumbnailUrl)
+        : null;
+      if (thumb) {
+        parts.push({ inlineData: thumb });
+        inputs.push("thumbnail");
+      }
+      if (clip.source.platform === "youtube") {
+        parts.push({
+          fileData: { fileUri: `https://www.youtube.com/watch?v=${clip.source.id}` },
+        });
+        inputs.push("video");
+      }
+    } else if (clip.video?.key && clip.thumbnail?.key) {
+      if (clip.video.size <= GEMINI_INLINE_VIDEO_MAX_BYTES) {
+        const video = await readObject(clip.video.key, GEMINI_INLINE_VIDEO_MAX_BYTES);
+        parts.push({
+          inlineData: {
+            mimeType: clip.video.contentType,
+            data: Buffer.from(video).toString("base64"),
+          },
+        });
+        inputs.push("video");
+      } else if (clip.video.size <= GEMINI_FILE_VIDEO_MAX_BYTES) {
+        uploadedFile = await uploadStorageVideoToGemini({
+          apiKey,
+          storageKey: clip.video.key,
+          size: clip.video.size,
           mimeType: clip.video.contentType,
-          data: Buffer.from(video).toString("base64"),
-        },
-      });
-      inputs.push("video");
-    } else if (clip.video.size <= GEMINI_FILE_VIDEO_MAX_BYTES) {
-      uploadedFile = await uploadStorageVideoToGemini({
-        apiKey,
-        storageKey: clip.video.key,
-        size: clip.video.size,
-        mimeType: clip.video.contentType,
-        displayName: `hall-of-faze-moderation-${String(clip._id)}`,
-      });
-      parts.push({ fileData: { mimeType: uploadedFile.mimeType, fileUri: uploadedFile.uri } });
-      inputs.push("video");
+          displayName: `hall-of-faze-moderation-${String(clip._id)}`,
+        });
+        parts.push({ fileData: { mimeType: uploadedFile.mimeType, fileUri: uploadedFile.uri } });
+        inputs.push("video");
+      }
+
+      const inlineVideoBytes =
+        clip.video.size <= GEMINI_INLINE_VIDEO_MAX_BYTES ? clip.video.size : 0;
+      if (inlineVideoBytes + clip.thumbnail.size <= INLINE_MEDIA_BUDGET_BYTES) {
+        const thumb = await readObject(clip.thumbnail.key, THUMBNAIL_MAX_BYTES);
+        parts.push({
+          inlineData: {
+            mimeType: clip.thumbnail.contentType,
+            data: Buffer.from(thumb).toString("base64"),
+          },
+        });
+        inputs.push("thumbnail");
+      }
     }
 
-    const inlineVideoBytes = clip.video.size <= GEMINI_INLINE_VIDEO_MAX_BYTES ? clip.video.size : 0;
-    if (inlineVideoBytes + clip.thumbnail.size <= INLINE_MEDIA_BUDGET_BYTES) {
-      const thumb = await readObject(clip.thumbnail.key, THUMBNAIL_MAX_BYTES);
-      parts.push({
-        inlineData: {
-          mimeType: clip.thumbnail.contentType,
-          data: Buffer.from(thumb).toString("base64"),
-        },
-      });
-      inputs.push("thumbnail");
-    }
     parts.push({ text: prompt(clip, inputs) });
 
     const res = await fetch(

@@ -54,6 +54,23 @@ export function SiteNav() {
     ? NAV_LINKS
     : NAV_LINKS.filter((link) => link.href !== "/account");
 
+  // Home: the hero's radial menu is the navigation, so only the sign-in button
+  // stays, floating top-right over the hero (below the sponsor strip on smaller screens).
+  if (pathname === "/") {
+    return (
+      <header className="absolute right-0 top-0 z-40 px-4 pt-10 sm:px-6 xl:pt-5">
+        {authenticated !== true && (
+          <Link
+            href="/account"
+            className="inline-flex whitespace-nowrap rounded-full bg-white px-5 py-2 text-sm font-semibold text-black shadow-lg shadow-black/40 transition-colors hover:bg-accent-fill hover:text-white"
+          >
+            {needsVerification ? "Verify email" : "Sign in"}
+          </Link>
+        )}
+      </header>
+    );
+  }
+
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-background/85 backdrop-blur">
       <nav

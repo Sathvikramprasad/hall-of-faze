@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { PageShell } from "@/components/layout/PageShell";
+import { MemberChannels, MemberChannelsSkeleton } from "@/components/vault/MemberChannels";
 import { SourceList } from "@/components/vault/SourceList";
 import { VideoEmbed } from "@/components/vault/VideoEmbed";
 import {
@@ -57,6 +59,12 @@ export default async function MemberPage(props: PageProps<"/vault/members/[slug]
 
         <p className="mt-8 text-lg leading-8">{member.bio}</p>
         <SourceList sources={member.sources} className="mt-4" />
+
+        {member.channels && (
+          <Suspense fallback={<MemberChannelsSkeleton />}>
+            <MemberChannels member={member} />
+          </Suspense>
+        )}
 
         <section aria-labelledby="videos-heading" className="mt-12">
           <h2 id="videos-heading" className="font-display text-3xl uppercase tracking-wide">

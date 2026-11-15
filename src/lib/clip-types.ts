@@ -20,6 +20,18 @@ export type PublicFazeDnaAnalysis = {
   ranAt: string;
 };
 
+/** Where a clip entered by link lives. Null for uploaded clips. */
+export type PublicClipSource = {
+  platform: "twitch" | "youtube";
+  /** Twitch clip slug or YouTube video id, for the platform's embed player. */
+  id: string;
+  /** The clip's page on Twitch / YouTube. */
+  url: string;
+  channelName: string;
+  /** The submitter proved this is their own channel. */
+  verifiedOwner: boolean;
+};
+
 /** What anyone may see. Only ever produced for clips with status "approved". */
 export type PublicClip = {
   id: string;
@@ -32,9 +44,14 @@ export type PublicClip = {
   voteEligible: true;
   voteCount: number;
   durationSeconds: number | null;
-  /** Same-origin URLs that redirect to short-lived signed storage URLs. */
+  /**
+   * Same-origin URLs. For uploads they redirect to short-lived signed storage
+   * URLs; for link clips, to the platform's thumbnail and clip page.
+   */
   thumbnailUrl: string;
   videoUrl: string;
+  /** Set when the clip was entered by Twitch / YouTube link; play it with that platform's player. */
+  source: PublicClipSource | null;
   createdAt: string;
   approvedAt: string;
   fazeDna: PublicFazeDnaAnalysis | null;
@@ -51,8 +68,11 @@ export type OwnerClip = Omit<PublicClip, "status" | "voteEligible" | "approvedAt
 export type ModeratorClip = OwnerClip & {
   /** Present when the owning challenge is configured as a Remix the Vault mission. */
   remixMissionId: string | null;
-  video: { contentType: string; size: number; originalName: string };
-  thumbnail: { contentType: string; size: number };
+  /** Null for clips entered by link. */
+  video: { contentType: string; size: number; originalName: string } | null;
+  thumbnail: { contentType: string; size: number } | null;
+  /** Channel the linked clip comes from (link clips only). */
+  sourceChannelId: string | null;
   statusHistory: { from: ClipStatus | null; to: ClipStatus; at: string; by: string; reason?: string }[];
   moderation: { reviewedBy: string | null; reviewedAt: string | null };
   aiModeration: {
@@ -88,3 +108,28 @@ export type CreateClipResponse = {
 };
 
 export type ModerationAction = "approve" | "reject" | "reopen";
+
+/** GET /api/clips/link?url=… — what a pasted link points to, before it's submitted. */
+export type LinkPreviewResponse = {
+  preview: {
+    platform: "twitch" | "youtube";
+    id: string;
+    url: string;
+    title: string;
+    channelName: string;
+    thumbnailUrl: string;
+    durationSeconds: number | null;
+  };
+  /** Whether the site requires link clips to come from the submitter's own verified channel. */
+  ownChannelRequired: boolean;
+  /** The submitter has verified this platform and the clip is from that channel. */
+  fromYourChannel: boolean;
+};
+
+/** POST /api/clips/link */
+export type CreateLinkClipRequest = {
+  url: string;
+  title?: string;
+  description?: string;
+  challengeId?: string | null;
+};

@@ -158,7 +158,12 @@ async function callGemini(
 ): Promise<FazeDnaAnalysisResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new FazeDnaError("GEMINI_API_KEY is not set.");
-  if (clip.video.size > GEMINI_FILE_VIDEO_MAX_BYTES) {
+  const videoMedia = clip.video;
+  const thumbnailMedia = clip.thumbnail;
+  if (!videoMedia?.key || !thumbnailMedia?.key) {
+    throw new FazeDnaError("FaZe DNA analysis requires an uploaded video and thumbnail.");
+  }
+  if (videoMedia.size > GEMINI_FILE_VIDEO_MAX_BYTES) {
     throw new FazeDnaError("FaZe DNA analysis requires a video no larger than 50 MB.");
   }
 
@@ -168,31 +173,32 @@ async function callGemini(
   let uploadedFile: GeminiUploadedFile | null = null;
 
   try {
-    if (clip.video.size <= GEMINI_INLINE_VIDEO_MAX_BYTES) {
-      const video = await readObject(clip.video.key, GEMINI_INLINE_VIDEO_MAX_BYTES);
+    if (videoMedia.size <= GEMINI_INLINE_VIDEO_MAX_BYTES) {
+      const video = await readObject(videoMedia.key, GEMINI_INLINE_VIDEO_MAX_BYTES);
       parts.push({
         inlineData: {
-          mimeType: clip.video.contentType,
+          mimeType: videoMedia.contentType,
           data: Buffer.from(video).toString("base64"),
         },
       });
     } else {
       uploadedFile = await uploadStorageVideoToGemini({
         apiKey,
-        storageKey: clip.video.key,
-        size: clip.video.size,
-        mimeType: clip.video.contentType,
+        storageKey: videoMedia.key,
+        size: videoMedia.size,
+        mimeType: videoMedia.contentType,
         displayName: `hall-of-faze-dna-${String(clip._id)}`,
       });
       parts.push({ fileData: { mimeType: uploadedFile.mimeType, fileUri: uploadedFile.uri } });
     }
 
-    const inlineVideoBytes = clip.video.size <= GEMINI_INLINE_VIDEO_MAX_BYTES ? clip.video.size : 0;
-    if (inlineVideoBytes + clip.thumbnail.size <= INLINE_MEDIA_BUDGET_BYTES) {
-      const thumbnail = await readObject(clip.thumbnail.key, THUMBNAIL_MAX_BYTES);
+    const inlineVideoBytes =
+      videoMedia.size <= GEMINI_INLINE_VIDEO_MAX_BYTES ? videoMedia.size : 0;
+    if (inlineVideoBytes + thumbnailMedia.size <= INLINE_MEDIA_BUDGET_BYTES) {
+      const thumbnail = await readObject(thumbnailMedia.key, THUMBNAIL_MAX_BYTES);
       parts.push({
         inlineData: {
-          mimeType: clip.thumbnail.contentType,
+          mimeType: thumbnailMedia.contentType,
           data: Buffer.from(thumbnail).toString("base64"),
         },
       });

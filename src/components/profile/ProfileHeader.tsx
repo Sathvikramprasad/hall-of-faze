@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef, useState, type FormEvent } from "react";
+import { VerifiedBadge } from "@/components/creator/CreatorBadges";
 import Avatar from "@/components/profile/Avatar";
 import { call, postJson, type UserResult } from "@/components/profile/api";
 import { AVATAR_ACCEPT, AVATAR_MAX_BYTES } from "@/lib/avatar-rules";
@@ -99,7 +100,10 @@ export default function ProfileHeader({ user, onUserChange, onSignOut, signingOu
             </div>
           )}
           <p className="mt-2 text-sm text-muted">{user.email}</p>
-          <p className="mt-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide">{user.role}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <p className="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide">{user.role}</p>
+            {(user.connections.twitch || user.connections.youtube) && <VerifiedBadge />}
+          </div>
           {note && <p role={note.tone === "error" ? "alert" : "status"} className={`mt-3 text-sm ${note.tone === "error" ? "text-amber-300" : "text-muted"}`}>{note.text}</p>}
         </div>
 
