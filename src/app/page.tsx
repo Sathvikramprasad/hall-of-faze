@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { OpenFazeBotButton } from "@/components/faze-bot/OpenFazeBotButton";
 import { MonthlyTop3, MonthlyTop3Skeleton } from "@/components/home/MonthlyTop3";
 import { PageShell } from "@/components/layout/PageShell";
+import { LivePulsePreview, LivePulsePreviewSkeleton } from "@/components/live/LivePulsePanel";
 import { LEGACY_CHALLENGE_HREF } from "@/lib/site";
 import { entryAnchor, formatEntryDate, getVaultEntries } from "@/lib/vault/queries";
 
@@ -60,6 +61,13 @@ export default function Home() {
       </section>
 
       <div className="mx-auto max-w-6xl space-y-20 px-4 py-16 sm:px-6">
+        {/* Current FaZe activity from the official YouTube and Twitch APIs. */}
+        <section aria-labelledby="live-pulse-heading">
+          <Suspense fallback={<LivePulsePreviewSkeleton />}>
+            <LivePulsePreview />
+          </Suspense>
+        </section>
+
         {/* Monthly Top 3 */}
         <section aria-labelledby="top3-heading">
           <Suspense fallback={<MonthlyTop3Skeleton />}>
