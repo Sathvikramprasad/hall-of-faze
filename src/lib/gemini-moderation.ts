@@ -1,8 +1,8 @@
 /**
  * Gemini structured moderation and guarded auto-approval.
  *
- * Sends the clip's title/description, custom thumbnail and — when small enough —
- * the video itself to Gemini with a JSON schema, then stores the structured
+ * Sends the clip's title/description, custom thumbnail and video to Gemini
+ * with a JSON schema, then stores the structured
  * recommendation on the clip for the human moderator. For configured Remix
  * the Vault missions only, a complete-video, clean result at 95%+ confidence
  * may approve the clip. Gemini never auto-rejects: every flagged, uncertain or
@@ -21,10 +21,15 @@ import { ClipTransitionError, transitionClip } from "@/lib/clips";
 import { runFazeDnaAnalysis } from "@/lib/gemini-remix";
 import { qualifiesForAiAutoApproval } from "@/lib/remix";
 import { getRemixMissionForChallengeId } from "@/lib/remix-server";
+import {
+  deleteGeminiFile,
+  GEMINI_FILE_VIDEO_MAX_BYTES,
+  GEMINI_INLINE_VIDEO_MAX_BYTES,
+  type GeminiUploadedFile,
+  uploadStorageVideoToGemini,
+} from "@/lib/gemini-file";
 
 const DEFAULT_MODEL = "gemini-3.5-flash";
-/** Inline request data is limited (~20 MB per request incl. base64 overhead). */
-const INLINE_VIDEO_MAX_BYTES = 12 * 1024 * 1024;
 /** Keep raw media below this so base64 + JSON remains under the request limit. */
 const INLINE_MEDIA_BUDGET_BYTES = 14 * 1024 * 1024;
 
@@ -125,62 +130,90 @@ async function callGemini(clip: ClipDocument): Promise<AiModerationResult> {
 
   const inputs = ["text"];
   const parts: Record<string, unknown>[] = [];
+  let uploadedFile: GeminiUploadedFile | null = null;
 
-  if (clip.video.size <= INLINE_VIDEO_MAX_BYTES) {
-    const video = await readObject(clip.video.key, INLINE_VIDEO_MAX_BYTES);
-    parts.push({ inlineData: { mimeType: clip.video.contentType, data: Buffer.from(video).toString("base64") } });
-    inputs.push("video");
-  }
-  const mediaBytes = inputs.includes("video") ? clip.video.size : 0;
-  if (mediaBytes + clip.thumbnail.size <= INLINE_MEDIA_BUDGET_BYTES) {
-    const thumb = await readObject(clip.thumbnail.key, THUMBNAIL_MAX_BYTES);
-    parts.push({ inlineData: { mimeType: clip.thumbnail.contentType, data: Buffer.from(thumb).toString("base64") } });
-    inputs.push("thumbnail");
-  }
-  parts.push({ text: prompt(clip, inputs) });
-
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts }],
-        generationConfig: {
-          temperature: 0,
-          responseMimeType: "application/json",
-          responseJsonSchema: responseSchema,
-        },
-      }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(60_000),
-    },
-  );
-
-  const data = (await res.json().catch(() => ({}))) as GeminiResponse;
-  if (!res.ok) {
-    throw new AiModerationError(`Gemini request failed (${res.status}): ${data.error?.message ?? "unknown error"}`);
-  }
-  if (data.promptFeedback?.blockReason) {
-    // Gemini's own safety filter refused the input — that is itself a strong signal.
-    return {
-      verdict: "reject",
-      confidence: 0.9,
-      categories: [],
-      summary: `Gemini blocked this input (${data.promptFeedback.blockReason}). Review it carefully.`,
-      model,
-      inputs,
-      ranAt: new Date(),
-    };
-  }
-  const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-  let parsed: unknown;
   try {
-    parsed = JSON.parse(text);
-  } catch {
-    throw new AiModerationError("Gemini did not return valid JSON.");
+    if (clip.video.size <= GEMINI_INLINE_VIDEO_MAX_BYTES) {
+      const video = await readObject(clip.video.key, GEMINI_INLINE_VIDEO_MAX_BYTES);
+      parts.push({
+        inlineData: {
+          mimeType: clip.video.contentType,
+          data: Buffer.from(video).toString("base64"),
+        },
+      });
+      inputs.push("video");
+    } else if (clip.video.size <= GEMINI_FILE_VIDEO_MAX_BYTES) {
+      uploadedFile = await uploadStorageVideoToGemini({
+        apiKey,
+        storageKey: clip.video.key,
+        size: clip.video.size,
+        mimeType: clip.video.contentType,
+        displayName: `hall-of-faze-moderation-${String(clip._id)}`,
+      });
+      parts.push({ fileData: { mimeType: uploadedFile.mimeType, fileUri: uploadedFile.uri } });
+      inputs.push("video");
+    }
+
+    const inlineVideoBytes = clip.video.size <= GEMINI_INLINE_VIDEO_MAX_BYTES ? clip.video.size : 0;
+    if (inlineVideoBytes + clip.thumbnail.size <= INLINE_MEDIA_BUDGET_BYTES) {
+      const thumb = await readObject(clip.thumbnail.key, THUMBNAIL_MAX_BYTES);
+      parts.push({
+        inlineData: {
+          mimeType: clip.thumbnail.contentType,
+          data: Buffer.from(thumb).toString("base64"),
+        },
+      });
+      inputs.push("thumbnail");
+    }
+    parts.push({ text: prompt(clip, inputs) });
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts }],
+          generationConfig: {
+            temperature: 0,
+            responseMimeType: "application/json",
+            responseJsonSchema: responseSchema,
+          },
+        }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(60_000),
+      },
+    );
+
+    const data = (await res.json().catch(() => ({}))) as GeminiResponse;
+    if (!res.ok) {
+      throw new AiModerationError(
+        `Gemini request failed (${res.status}): ${data.error?.message ?? "unknown error"}`,
+      );
+    }
+    if (data.promptFeedback?.blockReason) {
+      // Gemini's own safety filter refused the input — that is itself a strong signal.
+      return {
+        verdict: "reject",
+        confidence: 0.9,
+        categories: [],
+        summary: `Gemini blocked this input (${data.promptFeedback.blockReason}). Review it carefully.`,
+        model,
+        inputs,
+        ranAt: new Date(),
+      };
+    }
+    const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      throw new AiModerationError("Gemini did not return valid JSON.");
+    }
+    return parseResult(parsed, model, inputs);
+  } finally {
+    if (uploadedFile) await deleteGeminiFile(uploadedFile, apiKey);
   }
-  return parseResult(parsed, model, inputs);
 }
 
 /** Runs AI moderation for a clip and stores the result (or the error). */
