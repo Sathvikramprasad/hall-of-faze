@@ -32,6 +32,22 @@ export const vaultEntries: VaultEntry[] = [
     ],
   },
   {
+    id: "apex-joins",
+    date: "2011-01-01",
+    datePrecision: "year",
+    title: "FaZe Apex joins",
+    summary:
+      "Yousef \"Apex\" Abdelfattah joins FaZe, the start of a run that takes him from trickshot videos into the company's leadership.",
+    category: "creators",
+    memberSlugs: ["apex"],
+    sources: [
+      {
+        label: "Complex",
+        url: "https://www.complex.com/pop-culture/a/taffeta-chime/faze-clan-streaming-twitch-youtube-explainer",
+      },
+    ],
+  },
+  {
     id: "one-million-teamtage",
     date: "2012-10-08",
     title: "1 million subscribers and the teamtage",
@@ -70,6 +86,89 @@ export const vaultEntries: VaultEntry[] = [
       {
         label: "Complex",
         url: "https://www.complex.com/pop-culture/a/taffeta-chime/faze-clan-streaming-twitch-youtube-explainer",
+      },
+    ],
+  },
+  {
+    id: "first-faze-house",
+    date: "2014-01-01",
+    datePrecision: "year",
+    title: "The first FaZe House",
+    summary:
+      "Temperrr and Banks open the first FaZe shared home in Plainview, New York, so members can mix lifestyle content into their gaming videos. Every creator who lived there goes on to pass 1.5 million YouTube subscribers.",
+    category: "creators",
+    memberSlugs: ["temperrr", "banks"],
+    sources: [
+      { label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" },
+      {
+        label: "Tubefilter",
+        url: "https://www.tubefilter.com/2018/04/26/what-is-faze-clan-gaming-youtube-twitch/",
+      },
+    ],
+  },
+  {
+    id: "hubrick-investment",
+    date: "2015-01-01",
+    datePrecision: "year",
+    title: "Hubrick invests and Lee Trink arrives",
+    summary:
+      "Social platform Hubrick, run by Norwegian entrepreneur Sebastian Geurts, invests in FaZe and brings in former record executive Lee Trink, who later becomes CEO.",
+    category: "business",
+    sources: [
+      { label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" },
+      {
+        label: "Tubefilter",
+        url: "https://www.tubefilter.com/2018/04/26/what-is-faze-clan-gaming-youtube-twitch/",
+      },
+    ],
+  },
+  {
+    id: "csgo-entry-2016",
+    date: "2016-01-01",
+    datePrecision: "month",
+    title: "FaZe enters Counter-Strike",
+    summary:
+      "FaZe acquires G2 Esports' international CS:GO roster, which plays its first Major under the FaZe name at MLG Columbus that spring.",
+    category: "esports",
+    sources: [
+      { label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" },
+      { label: "pley.gg", url: "https://pley.gg/cs2/faze/" },
+    ],
+  },
+  {
+    id: "eleague-premier-2017",
+    date: "2017-10-13",
+    title: "ELEAGUE CS:GO Premier champions",
+    summary:
+      "FaZe sweep Astralis 2–0 in Atlanta to win ELEAGUE CS:GO Premier and its $500,000 first prize, with rain named MVP.",
+    category: "esports",
+    sources: [
+      {
+        label: "Wikipedia: ELEAGUE CS:GO Premier",
+        url: "https://en.wikipedia.org/wiki/ELeague_CS:GO_Premier",
+      },
+      {
+        label: "Shacknews",
+        url: "https://shacknews.com/article/101716/faze-clan-wins-eleague-csgo-premier-and-500k-grand-prize",
+      },
+    ],
+  },
+  {
+    id: "boston-major-2018",
+    date: "2018-01-28",
+    title: "So close in Boston",
+    summary:
+      "Favorites FaZe reach the ELEAGUE Major final in Boston but fall 2–1 to Cloud9, losing the deciding map 22–19 in double overtime.",
+    category: "esports",
+    memberSlugs: ["karrigan"],
+    sources: [
+      {
+        label: "Wikipedia: ELEAGUE Major: Boston 2018",
+        url: "https://en.wikipedia.org/wiki/ELEAGUE_Major:_Boston_2018",
+      },
+      {
+        label: "Dust2.us",
+        url: "https://dust2.us/news/636/cloud9-take-down-faze-in-close-games-claim-major-title",
       },
     ],
   },

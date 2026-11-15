@@ -34,6 +34,21 @@ export type VaultEntry = {
   video?: VideoEmbed;
 };
 
+/** A dated number shown as a compact marker in its year, e.g. a subscriber count. */
+export type VaultStat = {
+  id: string;
+  /** ISO date (YYYY-MM-DD). Use the first of the month/year when only that is known. */
+  date: string;
+  datePrecision?: "day" | "month" | "year";
+  /** Display value, e.g. "3.63M". */
+  value: string;
+  /** What the value counts, e.g. "YouTube subscribers". */
+  label: string;
+  /** Short context, e.g. "Guinness World Record". */
+  note?: string;
+  sources: [SourceLink, ...SourceLink[]];
+};
+
 export type VideoEmbed = {
   /** YouTube video id (the part after v=). */
   youtubeId: string;

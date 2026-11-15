@@ -1,6 +1,7 @@
 import { vaultEntries } from "./entries";
 import { memberProfiles } from "./members";
-import type { MemberProfile, VaultCategory, VaultEntry } from "./types";
+import { vaultStats } from "./stats";
+import type { MemberProfile, VaultCategory, VaultEntry, VaultStat } from "./types";
 
 // Read helpers for the curated Vault data. Everything here is synchronous and
 // static today; when the data moves to MongoDB, keep these signatures and swap
@@ -41,6 +42,24 @@ export function getEntriesByYear(): { year: number; entries: VaultEntry[] }[] {
   return [...groups.entries()].map(([year, entries]) => ({ year, entries }));
 }
 
+export function getVaultStats(): VaultStat[] {
+  return [...vaultStats].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/** Every year that has entries or stats, with both, in order. */
+export function getTimelineByYear(): { year: number; entries: VaultEntry[]; stats: VaultStat[] }[] {
+  const years = new Map<number, { entries: VaultEntry[]; stats: VaultStat[] }>();
+  const bucket = (year: number) => {
+    if (!years.has(year)) years.set(year, { entries: [], stats: [] });
+    return years.get(year)!;
+  };
+  for (const entry of getVaultEntries()) bucket(getEntryYear(entry)).entries.push(entry);
+  for (const stat of getVaultStats()) bucket(Number(stat.date.slice(0, 4))).stats.push(stat);
+  return [...years.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([year, group]) => ({ year, ...group }));
+}
+
 export function getEntry(id: string): VaultEntry | undefined {
   return vaultEntries.find((entry) => entry.id === id);
 }
@@ -63,7 +82,7 @@ const MONTHS = [
 ];
 
 /** "May 30, 2010", "May 2010" or "2010" depending on datePrecision. */
-export function formatEntryDate(entry: VaultEntry): string {
+export function formatEntryDate(entry: Pick<VaultEntry, "date" | "datePrecision">): string {
   const [year, month, day] = entry.date.split("-").map(Number);
   const precision = entry.datePrecision ?? "day";
   if (precision === "year") return String(year);

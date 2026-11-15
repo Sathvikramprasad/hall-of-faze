@@ -4,15 +4,15 @@ import {
   VAULT_YEARS,
   entryAnchor,
   formatEntryDate,
-  getEntriesByYear,
   getMember,
+  getTimelineByYear,
 } from "@/lib/vault/queries";
-import type { VaultEntry } from "@/lib/vault/types";
+import type { VaultEntry, VaultStat } from "@/lib/vault/types";
 import { SourceList } from "./SourceList";
 import { VideoEmbed } from "./VideoEmbed";
 
 export function VaultTimeline() {
-  const groups = getEntriesByYear();
+  const groups = getTimelineByYear();
   const yearsWithEntries = new Set(groups.map((g) => g.year));
 
   return (
@@ -41,20 +41,58 @@ export function VaultTimeline() {
       </nav>
 
       <div className="space-y-12">
-        {groups.map(({ year, entries }) => (
+        {groups.map(({ year, entries, stats }) => (
           <section key={year} id={`year-${year}`} aria-labelledby={`year-${year}-heading`} className="scroll-mt-24">
             <h3 id={`year-${year}-heading`} className="font-display text-4xl tracking-wide text-accent-fill">
               {year}
             </h3>
-            <ol className="mt-4 space-y-4 border-l-2 border-accent/40 pl-6">
-              {entries.map((entry) => (
-                <TimelineEntry key={entry.id} entry={entry} />
-              ))}
-            </ol>
+            {stats.length > 0 && (
+              <ul aria-label={`${year} subscriber milestones`} className="mt-3 flex flex-wrap gap-2">
+                {stats.map((stat) => (
+                  <StatMarker key={stat.id} stat={stat} />
+                ))}
+              </ul>
+            )}
+            {entries.length > 0 && (
+              <ol className="mt-4 space-y-4 border-l-2 border-accent/40 pl-6">
+                {entries.map((entry) => (
+                  <TimelineEntry key={entry.id} entry={entry} />
+                ))}
+              </ol>
+            )}
           </section>
         ))}
       </div>
     </div>
+  );
+}
+
+/** Compact marker for a dated number, e.g. a subscriber count. */
+function StatMarker({ stat }: { stat: VaultStat }) {
+  return (
+    <li className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg border border-accent-fill/50 bg-accent-fill/10 px-3 py-2 text-sm">
+      <span className="font-display text-2xl leading-none">{stat.value}</span>
+      <span className="font-semibold">{stat.label}</span>
+      <span className="text-muted">
+        <time dateTime={stat.date}>{formatEntryDate(stat)}</time>
+        {stat.note && <> · {stat.note}</>}
+        {" · "}
+        {stat.sources.map((source, i) => (
+          <span key={source.url}>
+            {i > 0 && ", "}
+            <a
+              href={source.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              {source.label}
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          </span>
+        ))}
+      </span>
+    </li>
   );
 }
 
