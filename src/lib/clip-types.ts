@@ -4,8 +4,21 @@
  * Dates are ISO-8601 strings.
  */
 import type { ClipStatus } from "@/lib/clip-rules";
+import type { FazeDnaScores } from "@/lib/remix";
 
 export type { ClipStatus } from "@/lib/clip-rules";
+
+export type PublicFazeDnaAnalysis = {
+  missionId: string;
+  scores: FazeDnaScores;
+  overallScore: number;
+  strength: string;
+  improvement: string;
+  reaction: string;
+  model: string;
+  inputs: string[];
+  ranAt: string;
+};
 
 /** What anyone may see. Only ever produced for clips with status "approved". */
 export type PublicClip = {
@@ -24,6 +37,7 @@ export type PublicClip = {
   videoUrl: string;
   createdAt: string;
   approvedAt: string;
+  fazeDna: PublicFazeDnaAnalysis | null;
 };
 
 /** What the uploader (or a moderator) sees for a clip that may not be public yet. */
@@ -35,6 +49,8 @@ export type OwnerClip = Omit<PublicClip, "status" | "voteEligible" | "approvedAt
 };
 
 export type ModeratorClip = OwnerClip & {
+  /** Present when the owning challenge is configured as a Remix the Vault mission. */
+  remixMissionId: string | null;
   video: { contentType: string; size: number; originalName: string };
   thumbnail: { contentType: string; size: number };
   statusHistory: { from: ClipStatus | null; to: ClipStatus; at: string; by: string; reason?: string }[];
@@ -49,6 +65,7 @@ export type ModeratorClip = OwnerClip & {
     ranAt: string;
   } | null;
   aiModerationError: string | null;
+  fazeDnaError: string | null;
 };
 
 export type ClipFeedResponse = { clips: PublicClip[]; nextCursor: string | null };

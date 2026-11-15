@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import ClipPlayer from "@/components/clips/ClipPlayer";
+import FazeDnaCard from "@/components/clips/FazeDnaCard";
 import { getViewer } from "@/lib/clip-identity";
 import { canViewClip, findClipById, getClipVoteCount, toOwnerClip } from "@/lib/clips";
 import type { ClipStatus } from "@/lib/clip-rules";
+import { getRemixMissionForChallengeId } from "@/lib/remix-server";
 
 export const metadata: Metadata = {
   title: "Clip · Hall of FaZe",
@@ -31,7 +33,11 @@ async function ClipDetail({ params }: { params: Promise<{ id: string }> }) {
 
   const [doc, viewer] = await Promise.all([findClipById(id), getViewer()]);
   if (!doc || !canViewClip(doc, viewer)) notFound();
-  const clip = toOwnerClip(doc, doc.status === "approved" ? await getClipVoteCount(id) : undefined);
+  const [voteCount, remixMission] = await Promise.all([
+    doc.status === "approved" ? getClipVoteCount(id) : Promise.resolve(undefined),
+    getRemixMissionForChallengeId(doc.challengeId),
+  ]);
+  const clip = toOwnerClip(doc, voteCount);
 
   return (
     <article className="flex flex-col gap-5">
@@ -56,6 +62,25 @@ async function ClipDetail({ params }: { params: Promise<{ id: string }> }) {
       </header>
 
       {clip.description && <p className="whitespace-pre-line leading-relaxed opacity-90">{clip.description}</p>}
+
+      {remixMission && clip.status === "approved" && clip.fazeDna && (
+        <FazeDnaCard analysis={clip.fazeDna} mission={remixMission} />
+      )}
+      {remixMission && clip.status === "approved" && !clip.fazeDna && (
+        <div role="status" className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm">
+          <p className="font-black text-white">FaZe DNA is {doc.fazeDnaError ? "waiting for a retry" : "being generated"}.</p>
+          <p className="mt-1 text-zinc-400">
+            {doc.fazeDnaError
+              ? "The clip stays approved and vote-eligible. A moderator can retry the AI coaching."
+              : "Refresh this page in a moment to see the four-part creative breakdown."}
+          </p>
+        </div>
+      )}
+      {remixMission && clip.status === "pending_review" && (
+        <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm opacity-80">
+          FaZe DNA coaching unlocks as soon as this remix is approved.
+        </p>
+      )}
     </article>
   );
 }

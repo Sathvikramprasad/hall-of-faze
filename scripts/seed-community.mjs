@@ -18,20 +18,21 @@ const now = new Date();
 // The slug stays the same so existing links and votes keep working.
 const challenge = {
   slug: "legacy-clutch-challenge-2026",
-  title: "Voltline Energy Legacy Clutch Challenge",
+  title: "Voltline Energy Remix the Vault: 2012",
   description:
-    "Hit your cleanest clutch, upload it with a custom thumbnail, and let the community decide who makes the November Hall of FaZe Top 3.",
+    "Watch FaZe's one-million-subscriber Teamtage, remix its skill and shared hype in an original 10–30 second clip, and let the community decide who makes the Hall of FaZe Top 3.",
   gameIds: ["counter-strike-2", "valorant", "call-of-duty"],
   rules: [
     "Submit footage that you created or have permission to use.",
-    "Enter one original gameplay clip per submission: up to 3 minutes and 250 MB (MP4, WebM or MOV), with a custom JPG, PNG or WebP thumbnail under 5 MB.",
+    "Enter one original 10–30 second gameplay clip no larger than 12 MB (MP4, WebM or MOV), with a custom JPG, PNG or WebP thumbnail under 5 MB.",
     "Clips must come from Counter-Strike 2, VALORANT or Call of Duty.",
-    "Every clip passes moderation before it appears or can receive votes. Moderators may reject or take down clips that break these rules.",
+    "Gemini checks the complete clip. Only a high-confidence clean result may auto-approve; anything flagged or uncertain goes to a human moderator and is never auto-rejected.",
+    "After approval, FaZe DNA provides creative coaching across skill, originality, hype and legacy connection. This score never affects the ranking.",
     "One signed-in fan may vote once per clip during this round. Bots, multiple accounts and vote trading are disqualified.",
     "Submissions and votes close at the deadline. Votes cast at or after the closing time do not count.",
     "Voltline Energy is a demo sponsor for this hackathon project. No purchase is necessary and no real prizes are awarded.",
   ],
-  eligibilitySummary: "Original gaming clips approved before the November voting deadline.",
+  eligibilitySummary: "Original 10–30 second gaming remixes approved before the November voting deadline.",
   prizeSummary: "Demo prizes: a Home page feature and a sponsor gear bundle for the Top 3.",
   sponsorName: "Voltline Energy",
   prizes: [
@@ -39,7 +40,13 @@ const challenge = {
     { place: "2nd", reward: "Featured on the Next Up page for a month, plus a Voltline Energy gear bundle (demo prize)." },
     { place: "3rd", reward: "A shout-out in the monthly Top 3 recap (demo prize)." },
   ],
-  howToWin: [],
+  howToWin: [
+    "Watch the official 2012 one-million-subscriber Teamtage in the Vault mission.",
+    "Create an original 10–30 second clutch, trickshot or high-skill play no larger than 12 MB.",
+    "Pass Gemini's guarded safety check or human moderation, then unlock your FaZe DNA coaching card.",
+    "Share your approved entry and collect valid community votes. FaZe DNA never changes your rank.",
+    "Finish in the community-voted Top 3 before the round closes.",
+  ],
   selectionPolicy: "community_vote",
   status: "active",
   roundKey: "2026-11",

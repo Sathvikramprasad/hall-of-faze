@@ -10,6 +10,7 @@
 import { Types } from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import Clip, { PROCESSING_TTL_MS, type ClipDocument } from "@/models/Clip";
+import Challenge from "@/models/Challenge";
 import Vote from "@/models/Vote";
 import {
   canTransition,
@@ -24,6 +25,7 @@ import {
 } from "@/lib/clip-rules";
 import { deleteObjectsQuietly, headObject, readObjectRange } from "@/lib/storage";
 import type { ModeratorClip, OwnerClip, PublicClip } from "@/lib/clip-types";
+import { getRemixMissionForChallenge } from "@/lib/remix";
 
 export { PROCESSING_TTL_MS };
 
@@ -37,6 +39,27 @@ function mediaUrls(id: string) {
   return {
     thumbnailUrl: `/api/clips/${id}/media/thumbnail`,
     videoUrl: `/api/clips/${id}/media/video`,
+  };
+}
+
+function serializeFazeDna(clip: LeanClip): PublicClip["fazeDna"] {
+  const analysis = clip.fazeDna;
+  if (!analysis) return null;
+  return {
+    missionId: analysis.missionId,
+    scores: {
+      skill: analysis.scores.skill,
+      originality: analysis.scores.originality,
+      hype: analysis.scores.hype,
+      legacyConnection: analysis.scores.legacyConnection,
+    },
+    overallScore: analysis.overallScore,
+    strength: analysis.strength,
+    improvement: analysis.improvement,
+    reaction: analysis.reaction,
+    model: analysis.model,
+    inputs: analysis.inputs ?? [],
+    ranAt: new Date(analysis.ranAt).toISOString(),
   };
 }
 
@@ -59,6 +82,7 @@ export function toPublicClip(clip: LeanClip, voteCount = clip.voteCount ?? 0): P
     ...mediaUrls(id),
     createdAt: new Date(clip.createdAt).toISOString(),
     approvedAt: new Date(clip.approvedAt).toISOString(),
+    fazeDna: serializeFazeDna(clip),
   };
 }
 
@@ -78,13 +102,19 @@ export function toOwnerClip(clip: LeanClip, voteCount = clip.voteCount ?? 0): Ow
     createdAt: new Date(clip.createdAt).toISOString(),
     approvedAt: clip.approvedAt ? new Date(clip.approvedAt).toISOString() : null,
     rejectionReason: clip.moderation?.rejectionReason ?? null,
+    fazeDna: serializeFazeDna(clip),
   };
 }
 
-export function toModeratorClip(clip: LeanClip, voteCount = clip.voteCount ?? 0): ModeratorClip {
+export function toModeratorClip(
+  clip: LeanClip,
+  voteCount = clip.voteCount ?? 0,
+  remixMissionId: string | null = null,
+): ModeratorClip {
   const ai = clip.aiModeration;
   return {
     ...toOwnerClip(clip, voteCount),
+    remixMissionId,
     video: {
       contentType: clip.video.contentType,
       size: clip.video.size,
@@ -114,6 +144,7 @@ export function toModeratorClip(clip: LeanClip, voteCount = clip.voteCount ?? 0)
         }
       : null,
     aiModerationError: clip.aiModerationError ?? null,
+    fazeDnaError: clip.fazeDnaError ?? null,
   };
 }
 
@@ -239,7 +270,30 @@ export async function listClipsForModeration(
   const counts = status === "approved"
     ? await getVoteCounts(docs.map((clip) => clip._id.toString()))
     : new Map<string, number>();
-  return docs.map((clip) => toModeratorClip(clip, counts.get(clip._id.toString()) ?? 0));
+  const challengeIds = [...new Set(
+    docs
+      .map((clip) => clip.challengeId)
+      .filter((id): id is string => Boolean(id && Types.ObjectId.isValid(id))),
+  )];
+  const challenges = challengeIds.length > 0
+    ? await Challenge.find({ _id: { $in: challengeIds.map((id) => new Types.ObjectId(id)) } })
+        .select({ slug: 1 })
+        .lean<Array<{ _id: Types.ObjectId; slug: string }>>()
+        .exec()
+    : [];
+  const missionByChallenge = new Map(
+    challenges.map((challenge) => [
+      challenge._id.toHexString(),
+      getRemixMissionForChallenge(challenge.slug)?.id ?? null,
+    ]),
+  );
+  return docs.map((clip) =>
+    toModeratorClip(
+      clip,
+      counts.get(clip._id.toString()) ?? 0,
+      clip.challengeId ? missionByChallenge.get(clip.challengeId) ?? null : null,
+    ),
+  );
 }
 
 export async function countClipsByStatus(): Promise<Record<ClipStatus, number>> {

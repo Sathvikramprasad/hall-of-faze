@@ -5,8 +5,11 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import VoteButton from "@/components/community/VoteButton";
 import { SponsorMark } from "@/components/sponsor/SponsorMark";
+import { VideoEmbed } from "@/components/vault/VideoEmbed";
 import { getChallengeLeaderboard, getPublicChallenge, type PublicChallenge } from "@/lib/community-data";
+import { getRemixMissionForChallenge, type RemixMission } from "@/lib/remix";
 import { DEMO_SPONSOR_NAME } from "@/lib/sponsor";
+import { getEntry } from "@/lib/vault/queries";
 
 function formatDeadline(value: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -41,12 +44,64 @@ function ChallengeLoading() {
   return <p className="text-zinc-400">Loading challenge and approved entries…</p>;
 }
 
+function LegacyRemixMission({ mission, challengeId }: { mission: RemixMission; challengeId: string }) {
+  const reference = getEntry(mission.vaultEntryId);
+  if (!reference?.video) return null;
+
+  return (
+    <section
+      id="legacy-mission"
+      aria-labelledby="legacy-mission-heading"
+      className="scroll-mt-24 border-b border-zinc-800 py-10"
+    >
+      <div className="grid items-start gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+        <VideoEmbed video={reference.video} />
+        <div>
+          <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-500">{mission.eyebrow}</p>
+          <h2 id="legacy-mission-heading" className="mt-2 text-3xl font-black sm:text-4xl">
+            {mission.title}
+          </h2>
+          <p className="mt-4 leading-7 text-zinc-300">{mission.description}</p>
+          <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-5">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-300">Your mission</p>
+            <p className="mt-2 font-semibold leading-7 text-white">{mission.prompt}</p>
+          </div>
+          <Link
+            href={`/upload?challengeId=${encodeURIComponent(challengeId)}&remix=${encodeURIComponent(mission.id)}`}
+            className="mt-5 inline-flex rounded-full bg-accent-fill px-6 py-3 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-red-900/40 transition hover:scale-105 focus-visible:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100"
+          >
+            Create your remix →
+          </Link>
+        </div>
+      </div>
+
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {mission.rubric.map((criterion) => (
+          <div key={criterion.key} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <h3 className="font-black text-white">{criterion.label}</h3>
+              <span className="font-mono text-sm font-bold text-[#c8ff3d]">
+                {Math.round(criterion.weight * 100)}%
+              </span>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-zinc-400">{criterion.description}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 text-sm text-zinc-500">
+        Gemini provides coaching scores after approval. Community votes still decide the Top 3.
+      </p>
+    </section>
+  );
+}
+
 async function ChallengeContent({ params }: { params: Promise<{ id: string }> }) {
   await io();
   const { id } = await params;
   const challenge = await getPublicChallenge(id);
   if (!challenge) notFound();
   const entries = await getChallengeLeaderboard(challenge.id, challenge.roundKey, 24);
+  const remixMission = getRemixMissionForChallenge(challenge.slug);
 
   return (
     <>
@@ -86,6 +141,8 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
           ) : null}
         </dl>
       </section>
+
+      {remixMission && <LegacyRemixMission mission={remixMission} challengeId={challenge.id} />}
 
       {challenge.prizes.length > 0 ? (
         <section aria-labelledby="prizes-heading" className="border-b border-zinc-800 py-10">
@@ -129,7 +186,7 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
             <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-500">Approved entries</p>
             <h2 className="mt-2 text-3xl font-black">Vote for your favorite</h2>
           </div>
-          <Link href={`/upload?challengeId=${encodeURIComponent(challenge.id)}`} className="rounded-full bg-accent-fill px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-transform duration-200 ease-out hover:scale-105 focus-visible:scale-105 active:scale-100 motion-reduce:transition-none motion-reduce:hover:scale-100">
+          <Link href={`/upload?challengeId=${encodeURIComponent(challenge.id)}${remixMission ? `&remix=${encodeURIComponent(remixMission.id)}` : ""}`} className="rounded-full bg-accent-fill px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-transform duration-200 ease-out hover:scale-105 focus-visible:scale-105 active:scale-100 motion-reduce:transition-none motion-reduce:hover:scale-100">
             Submit a clip
           </Link>
         </div>
@@ -143,14 +200,21 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
             {entries.map((entry) => (
               <article key={entry.clipId} className="overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950">
                 <Link href={`/clips/${entry.clipId}`} className="block bg-zinc-900">
-                  <Image
-                    src={entry.thumbnailUrl}
-                    alt={`Thumbnail for ${entry.title}`}
-                    width={640}
-                    height={360}
-                    unoptimized
-                    className="aspect-video w-full object-cover"
-                  />
+                  <div className="relative">
+                    <Image
+                      src={entry.thumbnailUrl}
+                      alt={`Thumbnail for ${entry.title}`}
+                      width={640}
+                      height={360}
+                      unoptimized
+                      className="aspect-video w-full object-cover"
+                    />
+                    {entry.fazeDnaScore !== null && (
+                      <span className="absolute left-3 top-3 rounded-full border border-[#c8ff3d]/50 bg-black/85 px-3 py-1 font-mono text-xs font-black text-[#c8ff3d]">
+                        FAZE DNA {entry.fazeDnaScore}
+                      </span>
+                    )}
+                  </div>
                 </Link>
                 <div className="p-5">
                   <div className="flex items-center justify-between gap-3">

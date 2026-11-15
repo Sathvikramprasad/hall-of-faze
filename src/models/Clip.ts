@@ -7,6 +7,7 @@ import {
   VIDEO_TYPES,
   type ClipStatus,
 } from "@/lib/clip-rules";
+import type { FazeDnaScores } from "@/lib/remix";
 
 export { CLIP_STATUSES, CLIP_STATUS_TRANSITIONS, canTransition } from "@/lib/clip-rules";
 export type { ClipStatus } from "@/lib/clip-rules";
@@ -38,6 +39,18 @@ export type AiModerationResult = {
   ranAt: Date;
 };
 
+export type FazeDnaAnalysisResult = {
+  missionId: string;
+  scores: FazeDnaScores;
+  overallScore: number;
+  strength: string;
+  improvement: string;
+  reaction: string;
+  model: string;
+  inputs: string[];
+  ranAt: Date;
+};
+
 export interface IClip {
   title: string;
   description: string;
@@ -49,15 +62,18 @@ export interface IClip {
   statusHistory: ClipStatusChange[];
   video: ClipMedia & { originalName: string; durationSeconds: number | null };
   thumbnail: ClipMedia;
-  /** Manual moderation decision. */
+  /** Human or guarded AI moderation decision. */
   moderation: {
     reviewedBy: string | null;
     reviewedAt: Date | null;
     rejectionReason: string | null;
   };
-  /** Advisory Gemini result. Never approves a clip on its own. */
+  /** Gemini safety and eligibility recommendation. */
   aiModeration: AiModerationResult | null;
   aiModerationError: string | null;
+  /** Post-approval creative coaching for a Remix the Vault mission. */
+  fazeDna: FazeDnaAnalysisResult | null;
+  fazeDnaError: string | null;
   approvedAt: Date | null;
   /** Legacy snapshot retained for schema compatibility; Vote records are authoritative. */
   voteCount: number;
@@ -81,6 +97,26 @@ const AiModerationSchema = new Schema<AiModerationResult>(
     confidence: { type: Number, required: true },
     categories: { type: [String], default: [] },
     summary: { type: String, default: "" },
+    model: { type: String, required: true },
+    inputs: { type: [String], default: [] },
+    ranAt: { type: Date, required: true },
+  },
+  { _id: false },
+);
+
+const FazeDnaAnalysisSchema = new Schema<FazeDnaAnalysisResult>(
+  {
+    missionId: { type: String, required: true },
+    scores: {
+      skill: { type: Number, required: true, min: 0, max: 100 },
+      originality: { type: Number, required: true, min: 0, max: 100 },
+      hype: { type: Number, required: true, min: 0, max: 100 },
+      legacyConnection: { type: Number, required: true, min: 0, max: 100 },
+    },
+    overallScore: { type: Number, required: true, min: 0, max: 100 },
+    strength: { type: String, required: true, maxlength: 600 },
+    improvement: { type: String, required: true, maxlength: 600 },
+    reaction: { type: String, required: true, maxlength: 300 },
     model: { type: String, required: true },
     inputs: { type: [String], default: [] },
     ranAt: { type: Date, required: true },
@@ -130,6 +166,8 @@ const ClipSchema = new Schema<IClip>(
     },
     aiModeration: { type: AiModerationSchema, default: null },
     aiModerationError: { type: String, default: null },
+    fazeDna: { type: FazeDnaAnalysisSchema, default: null },
+    fazeDnaError: { type: String, default: null },
     approvedAt: { type: Date, default: null },
     voteCount: { type: Number, default: 0, min: 0 },
     processingExpiresAt: { type: Date, default: null },

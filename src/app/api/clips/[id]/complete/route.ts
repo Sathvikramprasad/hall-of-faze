@@ -3,7 +3,9 @@ import { hasValidOrigin } from "@/lib/api";
 import { apiError, apiJson, handleRouteError, isClipId } from "@/lib/clip-http";
 import { getViewer } from "@/lib/clip-identity";
 import { findClipById, finalizeUpload, toOwnerClip } from "@/lib/clips";
-import { isAutoAiReviewEnabled, runAiModeration } from "@/lib/gemini-moderation";
+import { isAutoAiReviewEnabled, runAutomatedModeration } from "@/lib/gemini-moderation";
+
+export const maxDuration = 60;
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -37,8 +39,9 @@ export async function POST(request: NextRequest, { params }: Context) {
     }
 
     if (isAutoAiReviewEnabled()) {
-      // Advisory only — runs after the response, never approves on its own.
-      after(() => runAiModeration(id).catch((e) => console.error("[clips] AI review failed:", e)));
+      // Runs after the response. Only a clean, high-confidence complete-video
+      // result for a configured remix mission can auto-approve; never rejects.
+      after(() => runAutomatedModeration(id).catch((e) => console.error("[clips] AI review failed:", e)));
     }
     return apiJson({ clip: toOwnerClip(result.clip) });
   } catch (error) {
