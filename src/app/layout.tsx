@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { Suspense } from "react";
 import { SiteNav } from "@/components/layout/SiteNav";
+import { SponsorRail } from "@/components/sponsor/SponsorRail";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         }>
           <SiteNav />
         </Suspense>
+        <SponsorRail />
         {children}
       </body>
     </html>
