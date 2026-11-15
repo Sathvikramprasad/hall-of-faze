@@ -3,7 +3,13 @@ import { PageShell } from "@/components/layout/PageShell";
 import { MemberCard } from "@/components/vault/MemberCard";
 import { VaultBanner, VaultDivider } from "@/components/vault/VaultBanner";
 import { VaultTimeline } from "@/components/vault/VaultTimeline";
-import { VAULT_END_YEAR, VAULT_START_YEAR, getMembers } from "@/lib/vault/queries";
+import {
+  VAULT_END_YEAR,
+  VAULT_START_YEAR,
+  getCurrentMembers,
+  getPastMembers,
+  getRosterAsOfLabel,
+} from "@/lib/vault/queries";
 
 export const metadata: Metadata = {
   title: "The FaZe Vault | Hall of FaZe",
@@ -11,7 +17,8 @@ export const metadata: Metadata = {
 };
 
 export default function VaultPage() {
-  const members = getMembers();
+  const currentMembers = getCurrentMembers();
+  const pastMembers = getPastMembers();
 
   return (
     <PageShell>
@@ -40,11 +47,32 @@ export default function VaultPage() {
           <h2 id="members-heading" className="scroll-mt-24 font-display text-3xl uppercase tracking-wide">
             Members
           </h2>
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {members.map((member) => (
-              <MemberCard key={member.slug} member={member} />
-            ))}
-          </ul>
+
+          <section aria-labelledby="current-members-heading" className="mt-8">
+            <h3 id="current-members-heading" className="font-display text-2xl uppercase tracking-wide">
+              Current members
+            </h3>
+            <p className="mt-1 text-sm text-muted">As of {getRosterAsOfLabel()}.</p>
+            <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {currentMembers.map((member) => (
+                <MemberCard key={member.slug} member={member} />
+              ))}
+            </ul>
+          </section>
+
+          <section aria-labelledby="past-members-heading" className="mt-14">
+            <h3 id="past-members-heading" className="font-display text-2xl uppercase tracking-wide">
+              Past members
+            </h3>
+            <p className="mt-1 text-sm text-muted">
+              The founders, leaders, creators and players who built FaZe.
+            </p>
+            <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {pastMembers.map((member) => (
+                <MemberCard key={member.slug} member={member} />
+              ))}
+            </ul>
+          </section>
         </section>
       </div>
     </PageShell>

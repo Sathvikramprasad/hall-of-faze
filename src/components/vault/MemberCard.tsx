@@ -1,22 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getChannelLinks } from "@/lib/vault/channels";
 import type { MemberProfile } from "@/lib/vault/types";
-
-function channelLinks(member: MemberProfile) {
-  const c = member.channels;
-  const links: { label: string; href: string; className: string }[] = [];
-  if (c?.youtubeChannelId || c?.youtubeHandle) {
-    links.push({
-      label: "YouTube",
-      href: c.youtubeChannelId ? `https://www.youtube.com/channel/${c.youtubeChannelId}` : `https://www.youtube.com/${c.youtubeHandle}`,
-      className: "bg-[#cc0000] hover:bg-[#a80000]",
-    });
-  }
-  if (c?.twitch) {
-    links.push({ label: "Twitch", href: `https://www.twitch.tv/${c.twitch}`, className: "bg-[#9146ff] hover:bg-[#772ce8]" });
-  }
-  return links;
-}
+import { CHANNEL_BUTTON_COLORS } from "./channel-colors";
 
 function MemberAvatar({ member }: { member: MemberProfile }) {
   if (member.photo) {
@@ -34,11 +20,11 @@ function MemberAvatar({ member }: { member: MemberProfile }) {
 /**
  * A member tile on the Vault page. It grows slightly on hover, and after
  * hovering for a moment it opens into a larger card with their photo, a short
- * bio and links to their YouTube and Twitch channels. Keyboard and touch users
- * get the same details on the member's profile page.
+ * bio, the games they play and links to their YouTube and Twitch channels.
+ * Keyboard and touch users get the same details on the member's profile page.
  */
 export function MemberCard({ member }: { member: MemberProfile }) {
-  const links = channelLinks(member);
+  const links = getChannelLinks(member);
   const profileHref = `/vault/members/${member.slug}`;
 
   return (
@@ -70,17 +56,31 @@ export function MemberCard({ member }: { member: MemberProfile }) {
           </div>
         </div>
         <p className="mt-4 text-sm leading-6">{member.bio}</p>
+        <div className="mt-4">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-muted">Games</p>
+          {member.games?.length ? (
+            <ul className="mt-1.5 flex flex-wrap gap-1.5">
+              {member.games.map((game) => (
+                <li key={game} className="rounded-full border border-white/15 bg-white/5 px-2.5 py-0.5 text-xs font-semibold">
+                  {game}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-1 text-xs text-muted">None listed</p>
+          )}
+        </div>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {links.map((link) => (
             <a
-              key={link.label}
+              key={link.platform}
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
               tabIndex={-1}
-              className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white transition-colors ${link.className}`}
+              className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white transition-colors ${CHANNEL_BUTTON_COLORS[link.platform]}`}
             >
-              {link.label}
+              {link.platform}
             </a>
           ))}
           {links.length === 0 && <span className="text-xs text-muted">No channels listed</span>}
