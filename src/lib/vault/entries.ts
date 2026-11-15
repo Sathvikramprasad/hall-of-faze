@@ -7,8 +7,8 @@ import type { VaultEntry } from "./types";
 //  - Write summaries in your own words; don't paste article text.
 //  - Keep entries sorted by date (getVaultEntries() sorts anyway).
 //
-// The Historian answers ONLY from this file and members.ts, so anything
-// missing here is something it can't talk about.
+// The Historian answers from this file and members.ts, and shows these source
+// links beside its answers so readers can verify the underlying facts.
 
 export const vaultEntries: VaultEntry[] = [
   {
@@ -21,6 +21,10 @@ export const vaultEntries: VaultEntry[] = [
     memberSlugs: ["clipz", "housecat", "resistance"],
     sources: [
       { label: "Wikipedia: FaZe Clan", url: "https://en.wikipedia.org/wiki/FaZe_Clan" },
+      {
+        label: "My Favorite Things Wiki: FaZe Clan",
+        url: "https://my-favorite-things.fandom.com/wiki/FaZe_Clan",
+      },
       {
         label: "Upcomer",
         url: "https://upcomer.com/faze-dirty-the-origin-story-of-an-original-faze-5-winner",

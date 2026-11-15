@@ -1,11 +1,11 @@
 import { getMembers, getVaultEntries, findRelatedEntries, formatEntryDate } from "./queries";
 import type { VaultEntry } from "./types";
 
-// Gemini Historian: answers questions using ONLY the curated Vault data.
+// Gemini Historian: answers questions using ONLY the curated, sourced Vault data.
 // Server-side only (reads GEMINI_API_KEY). Called from /api/vault/historian.
 //
 // Env:
-//   GEMINI_API_KEY  required for live answers; without it we return a fallback
+//   GEMINI_API_KEY  optional; without it we return a deterministic sourced answer
 //   GEMINI_MODEL    optional. One model id, or a comma-separated list tried in
 //                   order, e.g. "gemini-3.7-flash,gemini-3.5-flash".
 //                   Defaults to DEFAULT_MODELS below.
@@ -20,7 +20,7 @@ const TRY_NEXT_MODEL = new Set([404, 429, 500, 502, 503, 504]);
 export const QUESTION_MIN = 3;
 export const QUESTION_MAX = 500;
 
-export type RelatedEntry = Pick<VaultEntry, "id" | "title" | "date">;
+export type RelatedEntry = Pick<VaultEntry, "id" | "title" | "date" | "summary" | "sources">;
 
 export type HistorianResponse =
   | {
@@ -45,7 +45,13 @@ export type HistorianResponse =
     };
 
 function toRelated(entries: VaultEntry[]): RelatedEntry[] {
-  return entries.map(({ id, title, date }) => ({ id, title, date }));
+  return entries.map(({ id, title, date, summary, sources }) => ({
+    id,
+    title,
+    date,
+    summary,
+    sources,
+  }));
 }
 
 export function validateQuestion(input: unknown): string | null {
@@ -55,13 +61,14 @@ export function validateQuestion(input: unknown): string | null {
   return question;
 }
 
-/** The curated Vault, serialized as the only context Gemini may use. */
+/** The curated Vault, including attribution links, serialized as Gemini's only context. */
 export function buildVaultContext(): string {
   const entries = getVaultEntries()
     .map(
       (e) =>
         `[${e.id}] ${formatEntryDate(e)}: ${e.title}. ${e.summary}` +
-        (e.memberSlugs?.length ? ` (members: ${e.memberSlugs.join(", ")})` : ""),
+        (e.memberSlugs?.length ? ` (members: ${e.memberSlugs.join(", ")})` : "") +
+        ` Sources: ${e.sources.map((source) => `${source.label} (${source.url})`).join("; ")}`,
     )
     .join("\n");
   const members = getMembers()
@@ -78,7 +85,8 @@ Answer questions about FaZe Clan history using ONLY the Vault context provided.
 Rules:
 - If the context does not contain the answer, set "answerable" to false and leave "answer" empty. Do not use outside knowledge, and do not guess.
 - Keep answers to 2–4 sentences, in plain language.
-- In "citedIds", list the ids of the Vault entries (the text inside [brackets], without "member:") that support the answer.`;
+- In "citedIds", list the ids of the Vault entries (the text inside [brackets], without "member:") that support the answer.
+- The application will display each cited entry's reference links, so cite every entry used.`;
 
 type GeminiJson = {
   answerable?: boolean;
@@ -170,15 +178,32 @@ const FAILURE_RESPONSES: Record<Failure, { reason: "busy" | "timeout" | "upstrea
   },
 };
 
+/**
+ * Keeps the Historian useful when Gemini is missing or temporarily unavailable.
+ * The related-entry search already ranks the best sourced Vault match first, so
+ * returning that entry's dated summary is deterministic and cannot invent facts.
+ */
+function sourceBackedFallback(entries: VaultEntry[]): HistorianResponse | null {
+  const bestMatch = entries[0];
+  if (!bestMatch) return null;
+
+  return {
+    status: "answered",
+    answer: `${formatEntryDate(bestMatch)}: ${bestMatch.summary}`,
+    citations: toRelated([bestMatch]),
+  };
+}
+
 export async function askHistorian(question: string): Promise<HistorianResponse> {
-  const related = toRelated(findRelatedEntries(question));
+  const relatedEntries = findRelatedEntries(question);
+  const related = toRelated(relatedEntries);
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return {
-      status: "unavailable",
-      reason: "not_configured",
-      message: "The Historian is offline right now. Here are Vault entries that may help.",
+    return sourceBackedFallback(relatedEntries) ?? {
+      status: "unsupported",
+      reason: "outside_vault",
+      message: "That isn't covered in the sourced Vault yet, so the Historian won't guess.",
       related,
     };
   }
@@ -196,12 +221,20 @@ export async function askHistorian(question: string): Promise<HistorianResponse>
   }
 
   if (data === undefined) {
-    return { status: "unavailable", ...FAILURE_RESPONSES[lastFailure], related };
+    return sourceBackedFallback(relatedEntries) ?? {
+      status: "unavailable",
+      ...FAILURE_RESPONSES[lastFailure],
+      related,
+    };
   }
 
   const parsed = parseGeminiJson(data);
   if (!parsed) {
-    return { status: "unavailable", ...FAILURE_RESPONSES.error, related };
+    return sourceBackedFallback(relatedEntries) ?? {
+      status: "unavailable",
+      ...FAILURE_RESPONSES.error,
+      related,
+    };
   }
 
   if (!parsed.answerable || !parsed.answer?.trim()) {

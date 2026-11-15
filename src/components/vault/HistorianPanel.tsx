@@ -56,8 +56,9 @@ export function HistorianPanel() {
         Ask the Historian
       </h2>
       <p className="mt-2 text-muted">
-        Answers come only from the curated Vault entries on this page. If the
-        Vault doesn&apos;t cover it, the Historian says so instead of guessing.
+        Answers come from the sourced Vault entries on this page. Every answer
+        links to its references, and the Historian says when the Vault does not
+        cover something instead of guessing.
       </p>
 
       <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -145,13 +146,27 @@ function EntryLinks({ heading, entries }: { heading: string; entries: RelatedEnt
       <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">{heading}</h3>
       <ul className="mt-2 space-y-1">
         {entries.map((entry) => (
-          <li key={entry.id}>
+          <li key={entry.id} className="space-y-1">
             <Link
               href={`/vault#entry-${entry.id}`}
               className="underline decoration-accent underline-offset-4 hover:text-accent"
             >
               {entry.date.slice(0, 4)}: {entry.title}
             </Link>
+            <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
+              {entry.sources.map((source) => (
+                <li key={source.url}>
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-4 hover:text-foreground"
+                  >
+                    {source.label} ↗
+                  </a>
+                </li>
+              ))}
+            </ul>
           </li>
         ))}
       </ul>
