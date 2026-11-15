@@ -29,7 +29,7 @@ export function MemberCard({ member }: { member: MemberProfile }) {
   const visibleGames = member.games?.filter((game) => game !== member.currentRoster) ?? [];
 
   return (
-    <li className="group/member relative">
+    <li className="group/member relative z-0 hover:z-30 focus-within:z-30">
       <Link
         href={profileHref}
         // Grows slightly on hover and keyboard focus; stays still for people who reduce motion.
@@ -55,8 +55,8 @@ export function MemberCard({ member }: { member: MemberProfile }) {
         )}
       </Link>
 
-      {/* Expanded card: opens quickly on hover and closes as soon as the pointer leaves. */}
-      <div className="invisible absolute -inset-x-3 -top-3 z-20 hidden origin-top scale-95 rounded-2xl border border-accent bg-surface p-5 opacity-0 shadow-2xl shadow-black/70 transition-[opacity,scale,visibility] duration-200 ease-out group-hover/member:visible group-hover/member:scale-100 group-hover/member:opacity-100 group-hover/member:delay-200 motion-reduce:scale-100 motion-reduce:transition-none sm:block">
+      {/* Expanded card: opens immediately on hover/focus and closes when the card is left. */}
+      <div className="pointer-events-none invisible absolute -inset-x-3 -top-3 z-20 hidden origin-top scale-95 rounded-2xl border border-accent bg-surface p-5 opacity-0 shadow-2xl shadow-black/70 transition-[opacity,scale,visibility] duration-150 ease-out group-hover/member:pointer-events-auto group-hover/member:visible group-hover/member:scale-100 group-hover/member:opacity-100 group-focus-within/member:pointer-events-auto group-focus-within/member:visible group-focus-within/member:scale-100 group-focus-within/member:opacity-100 motion-reduce:scale-100 motion-reduce:transition-none sm:block">
         <div className="flex items-center gap-4">
           <MemberAvatar member={member} />
           <div className="min-w-0">
