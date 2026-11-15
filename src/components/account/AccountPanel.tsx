@@ -5,6 +5,7 @@ import { useEffect, useId, useState, type FormEvent } from "react";
 import { announceAuthChange } from "@/lib/client-auth";
 import type { AccountUser } from "@/types";
 import MyClips from "@/components/profile/MyClips";
+import MmrPanel from "@/components/profile/MmrPanel";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ResetPasswordForm from "@/components/profile/ResetPasswordForm";
 import SecuritySection from "@/components/profile/SecuritySection";
@@ -132,6 +133,7 @@ export default function AccountPanel({ nextPath = null }: { nextPath?: string | 
       <Shell title="My Profile" wide>
         <div className="flex flex-col gap-6">
           <ProfileHeader user={user} onUserChange={setUser} onSignOut={signOut} signingOut={busy} />
+          <MmrPanel />
           <MyClips />
           <SecuritySection email={user.email} />
           {user.role === "moderator" && (
