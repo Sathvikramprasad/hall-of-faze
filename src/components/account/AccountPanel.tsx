@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { announceAuthChange } from "@/lib/client-auth";
 import type { AccountUser } from "@/types";
@@ -12,7 +13,8 @@ type AuthEnvelope = {
   error?: { message?: string };
 };
 
-export default function AccountPanel() {
+export default function AccountPanel({ nextPath = null }: { nextPath?: string | null }) {
+  const router = useRouter();
   const ids = { name: useId(), email: useId(), password: useId() };
   const [user, setUser] = useState<AccountUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,7 +65,13 @@ export default function AccountPanel() {
       setUser(body.data.user);
       announceAuthChange();
       setPassword("");
-      setMessage("Signed in.");
+      if (nextPath) {
+        setMessage("Signed in. Redirecting…");
+        router.replace(nextPath);
+        router.refresh();
+      } else {
+        setMessage("Signed in.");
+      }
     } catch {
       setMessage("Could not reach the server. Try again.");
     } finally {

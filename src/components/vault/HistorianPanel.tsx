@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
+import { AUTH_CHANGED_EVENT } from "@/lib/client-auth";
 import type { HistorianResponse, RelatedEntry, WebSource } from "@/lib/vault/historian";
 
 const QUESTION_MAX = 500;
@@ -23,6 +24,28 @@ export function HistorianPanel() {
   const hintId = useId();
   const [question, setQuestion] = useState("");
   const [state, setState] = useState<State>({ kind: "idle" });
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkSession() {
+      try {
+        const response = await fetch("/api/user/me", { cache: "no-store" });
+        if (!cancelled) setAuthenticated(response.ok);
+      } catch {
+        if (!cancelled) setAuthenticated(false);
+      }
+    }
+
+    const handleAuthChange = () => { void checkSession(); };
+    void checkSession();
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
+    };
+  }, []);
 
   async function ask(text: string) {
     const trimmed = text.trim();
@@ -35,6 +58,11 @@ export function HistorianPanel() {
         body: JSON.stringify({ question: trimmed }),
       });
       const result = (await res.json()) as HistorianResponse;
+      if (result.status === "unauthenticated") {
+        setAuthenticated(false);
+        setState({ kind: "idle" });
+        return;
+      }
       setState({ kind: "result", result });
     } catch {
       setState({ kind: "network_error" });
@@ -60,60 +88,70 @@ export function HistorianPanel() {
         the sourced Vault first, then uses live web results for broader questions.
       </p>
 
-      <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <label htmlFor={inputId} className="sr-only">
-          Your question about FaZe history
-        </label>
-        <input
-          id={inputId}
-          type="text"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          maxLength={QUESTION_MAX}
-          placeholder="e.g. What is FaZe Adapt known for?"
-          aria-describedby={hintId}
-          className="min-h-12 flex-1 rounded-lg border border-white/15 bg-background px-4 text-base text-foreground placeholder:text-muted/70"
-        />
-        <button
-          type="submit"
-          disabled={state.kind === "loading" || question.trim().length === 0}
-          className="min-h-12 rounded-lg bg-accent-fill px-6 font-semibold text-white transition-colors hover:bg-accent-fill-strong disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {state.kind === "loading" ? "Asking…" : "Ask"}
-        </button>
-      </form>
+      {authenticated === null ? (
+        <p className="mt-6 text-muted">Checking sign-in status…</p>
+      ) : authenticated === false ? (
+        <HistorianSignIn />
+      ) : (
+        <>
+          <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <label htmlFor={inputId} className="sr-only">
+              Your question about FaZe history
+            </label>
+            <input
+              id={inputId}
+              type="text"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              maxLength={QUESTION_MAX}
+              placeholder="e.g. What is FaZe Adapt known for?"
+              aria-describedby={hintId}
+              className="min-h-12 flex-1 rounded-lg border border-white/15 bg-background px-4 text-base text-foreground placeholder:text-muted/70"
+            />
+            <button
+              type="submit"
+              disabled={state.kind === "loading" || question.trim().length === 0}
+              className="min-h-12 rounded-lg bg-accent-fill px-6 font-semibold text-white transition-colors hover:bg-accent-fill-strong disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {state.kind === "loading" ? "Asking…" : "Ask"}
+            </button>
+          </form>
 
-      <div id={hintId} className="mt-3 flex flex-wrap gap-2 text-sm">
-        <span className="text-muted">Try:</span>
-        {EXAMPLES.map((example) => (
-          <button
-            key={example}
-            type="button"
-            onClick={() => {
-              setQuestion(example);
-              void ask(example);
-            }}
-            className="rounded-full border border-white/15 px-3 py-1 text-muted transition-colors hover:border-accent hover:text-foreground"
-          >
-            {example}
-          </button>
-        ))}
-      </div>
+          <div id={hintId} className="mt-3 flex flex-wrap gap-2 text-sm">
+            <span className="text-muted">Try:</span>
+            {EXAMPLES.map((example) => (
+              <button
+                key={example}
+                type="button"
+                onClick={() => {
+                  setQuestion(example);
+                  void ask(example);
+                }}
+                className="rounded-full border border-white/15 px-3 py-1 text-muted transition-colors hover:border-accent hover:text-foreground"
+              >
+                {example}
+              </button>
+            ))}
+          </div>
 
-      <div aria-live="polite" className="mt-6">
-        {state.kind === "loading" && <p className="text-muted">Checking the Vault and web…</p>}
-        {state.kind === "network_error" && (
-          <p className="text-muted">
-            Couldn&apos;t reach the Historian. Check your connection and try again.
-          </p>
-        )}
-        {state.kind === "result" && <HistorianResult result={state.result} />}
-      </div>
+          <div aria-live="polite" className="mt-6">
+            {state.kind === "loading" && <p className="text-muted">Checking the Vault and web…</p>}
+            {state.kind === "network_error" && (
+              <p className="text-muted">
+                Couldn&apos;t reach the Historian. Check your connection and try again.
+              </p>
+            )}
+            {state.kind === "result" && <HistorianResult result={state.result} />}
+          </div>
+        </>
+      )}
     </section>
   );
 }
 
 function HistorianResult({ result }: { result: HistorianResponse }) {
+  if (result.status === "unauthenticated") return <HistorianSignIn />;
+
   if (result.status === "answered") {
     return (
       <div className="rounded-xl border border-accent/40 bg-accent/10 p-5">
@@ -134,6 +172,23 @@ function HistorianResult({ result }: { result: HistorianResponse }) {
       {result.related.length > 0 && (
         <EntryLinks heading="Related Vault entries" entries={result.related} />
       )}
+    </div>
+  );
+}
+
+function HistorianSignIn() {
+  return (
+    <div className="mt-6 rounded-xl border border-accent/40 bg-accent/10 p-5">
+      <h3 className="text-lg font-semibold">Sign in to ask the Historian</h3>
+      <p className="mt-2 text-sm text-muted">
+        The Vault stays public, while AI questions are available to signed-in members.
+      </p>
+      <Link
+        href="/account?next=%2Fvault%23historian"
+        className="mt-4 inline-flex rounded-lg bg-accent-fill px-4 py-2 font-semibold text-white"
+      >
+        Sign in or create an account
+      </Link>
     </div>
   );
 }

@@ -45,6 +45,10 @@ export type HistorianResponse =
       webSources: WebSource[];
     }
   | {
+      status: "unauthenticated";
+      message: string;
+    }
+  | {
       /** The question is fine, but the Historian can't answer it right now. */
       status: "unavailable";
       reason: "not_configured" | "busy" | "timeout" | "upstream_error" | "rate_limited";
