@@ -18,7 +18,7 @@ async function LeaderboardContent() {
     <section>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-500">{challenge.title}</p>
+          <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-500">{challenge.displayTitle}</p>
           <h2 className="mt-2 text-3xl font-black">Round {challenge.roundKey}</h2>
         </div>
         <Link href={`/next-up/${challenge.id}`} className="text-sm font-bold text-zinc-300 hover:text-red-400">

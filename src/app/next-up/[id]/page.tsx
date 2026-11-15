@@ -4,7 +4,38 @@ import { io } from "next/cache";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import VoteButton from "@/components/community/VoteButton";
-import { getChallengeLeaderboard, getPublicChallenge } from "@/lib/community-data";
+import { SponsorMark } from "@/components/sponsor/SponsorMark";
+import { getChallengeLeaderboard, getPublicChallenge, type PublicChallenge } from "@/lib/community-data";
+import { DEMO_SPONSOR_NAME } from "@/lib/sponsor";
+
+function formatDeadline(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+  }).format(new Date(value));
+}
+
+/** Steps shown under "How to win"; falls back to the platform's real rules when none are stored. */
+function winningSteps(challenge: PublicChallenge): string[] {
+  if (challenge.howToWin.length > 0) return challenge.howToWin;
+  const deadline = formatDeadline(challenge.endsAt);
+  return [
+    `Upload an original gameplay clip with a custom thumbnail from this page before ${deadline}.`,
+    "Pass moderation. Only approved clips are shown and can receive votes.",
+    `Collect the most valid votes by ${deadline}. Each signed-in fan gets one vote per clip this round.`,
+    "Ties go to the clip that was approved first, then to the lower clip ID.",
+    "The top three are shown on the leaderboard and the Home page.",
+  ];
+}
+
+function isDemoSponsor(challenge: PublicChallenge) {
+  return challenge.sponsorName === DEMO_SPONSOR_NAME;
+}
 
 function ChallengeLoading() {
   return <p className="text-zinc-400">Loading challenge and approved entries…</p>;
@@ -21,12 +52,29 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
     <>
       <section className="grid gap-8 border-b border-zinc-800 pb-10 lg:grid-cols-[1.5fr_1fr]">
         <div>
+          {challenge.sponsorName ? (
+            <p className="mb-5 inline-flex flex-wrap items-center gap-2 rounded-full border border-[#c8ff3d]/40 bg-[#c8ff3d]/10 px-3 py-1.5 text-sm text-zinc-200">
+              <SponsorMark className="h-5 w-5" />
+              <span>
+                Presented by <strong className="text-white">{challenge.sponsorName}</strong>
+              </span>
+              {isDemoSponsor(challenge) && (
+                <span className="rounded-full border border-white/20 px-2 py-px text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
+                  Demo sponsor
+                </span>
+              )}
+            </p>
+          ) : null}
           <p className="text-sm font-bold uppercase tracking-[0.3em] text-red-500">Round {challenge.roundKey}</p>
-          <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">{challenge.title}</h1>
+          <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">{challenge.displayTitle}</h1>
           <p className="mt-5 max-w-3xl text-lg leading-8 text-zinc-300">{challenge.description}</p>
         </div>
         <dl className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-sm">
           <div>
+            <dt className="font-bold uppercase tracking-wider text-zinc-500">Submissions and voting close</dt>
+            <dd className="mt-2 leading-6 text-zinc-200">{formatDeadline(challenge.endsAt)}</dd>
+          </div>
+          <div className="mt-5 border-t border-zinc-800 pt-5">
             <dt className="font-bold uppercase tracking-wider text-zinc-500">Eligibility</dt>
             <dd className="mt-2 leading-6 text-zinc-200">{challenge.eligibilitySummary}</dd>
           </div>
@@ -37,6 +85,42 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
             </div>
           ) : null}
         </dl>
+      </section>
+
+      {challenge.prizes.length > 0 ? (
+        <section aria-labelledby="prizes-heading" className="border-b border-zinc-800 py-10">
+          <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-500">Prizes</p>
+          <h2 id="prizes-heading" className="mt-2 text-3xl font-black">What you can win</h2>
+          <ol className="mt-6 grid gap-4 md:grid-cols-3">
+            {challenge.prizes.map((prize, index) => (
+              <li
+                key={`${prize.place}-${index}`}
+                className={`rounded-3xl border p-6 ${index === 0 ? "border-[#c8ff3d]/50 bg-[#c8ff3d]/5" : "border-zinc-800 bg-zinc-950"}`}
+              >
+                <p className={`font-mono text-4xl font-black ${index === 0 ? "text-[#c8ff3d]" : "text-red-500"}`}>{prize.place}</p>
+                <p className="mt-3 leading-7 text-zinc-200">{prize.reward}</p>
+              </li>
+            ))}
+          </ol>
+          {isDemoSponsor(challenge) && (
+            <p className="mt-4 text-sm text-zinc-500">
+              Demo sponsor and demo prizes for illustration only. No real prizes are awarded.
+            </p>
+          )}
+        </section>
+      ) : null}
+
+      <section aria-labelledby="how-to-win-heading" className="border-b border-zinc-800 py-10">
+        <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-500">How to win</p>
+        <h2 id="how-to-win-heading" className="mt-2 text-3xl font-black">From upload to Top 3</h2>
+        <ol className="mt-6 grid gap-3 text-zinc-300 md:grid-cols-2">
+          {winningSteps(challenge).map((step, index) => (
+            <li key={`${index}-${step}`} className="flex gap-4 rounded-2xl bg-zinc-950 p-4">
+              <span className="font-black text-[#c8ff3d]">{index + 1}</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
       </section>
 
       <section className="py-10">
@@ -88,7 +172,7 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
       </section>
 
       <section className="border-t border-zinc-800 pt-10">
-        <h2 className="text-2xl font-black">Rules</h2>
+        <h2 className="text-2xl font-black">Official rules</h2>
         <ol className="mt-5 grid gap-3 text-zinc-300">
           {challenge.rules.map((rule, index) => (
             <li key={`${index}-${rule}`} className="flex gap-4 rounded-2xl bg-zinc-950 p-4">
