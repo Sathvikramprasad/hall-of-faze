@@ -9,6 +9,7 @@ import {
 } from "@/lib/vault/queries";
 import type { VaultEntry } from "@/lib/vault/types";
 import { SourceList } from "./SourceList";
+import { VideoEmbed } from "./VideoEmbed";
 
 export function VaultTimeline() {
   const groups = getEntriesByYear();
@@ -82,6 +83,11 @@ function TimelineEntry({ entry }: { entry: VaultEntry }) {
         </div>
         <h4 className="mt-2 text-lg font-bold">{entry.title}</h4>
         <p className="mt-1 leading-7 text-foreground/90">{entry.summary}</p>
+        {entry.video && (
+          <div className="mt-4 max-w-2xl">
+            <VideoEmbed video={entry.video} />
+          </div>
+        )}
         {members.length > 0 && (
           <p className="mt-3 text-sm">
             <span className="text-muted">Members: </span>
