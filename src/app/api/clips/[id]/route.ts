@@ -29,9 +29,9 @@ export async function GET(_request: Request, { params }: Context) {
 
 /**
  * DELETE /api/clips/{id}
- * Uploaders can cancel/delete their own clip while it is not approved
- * (approved clips may carry votes; a moderator takes those down instead).
- * Moderators can delete any clip.
+ * Uploaders can delete their own clips at any time, including approved ones
+ * (its votes are removed with it, so leaderboards update). Moderators can
+ * delete any clip.
  */
 export async function DELETE(request: NextRequest, { params }: Context) {
   if (!hasValidOrigin(request)) return apiError(403, "forbidden", "Invalid request origin.");
@@ -41,9 +41,6 @@ export async function DELETE(request: NextRequest, { params }: Context) {
     const [clip, viewer] = await Promise.all([findClipById(id), getViewer()]);
     const isOwner = clip !== null && viewer.userId !== null && viewer.userId === clip.uploaderId;
     if (!clip || (!isOwner && !viewer.isModerator)) return apiError(404, "not_found", "Clip not found.");
-    if (!viewer.isModerator && clip.status === "approved") {
-      return apiError(409, "conflict", "Approved clips can only be removed by a moderator.");
-    }
     await deleteClipAndMedia(clip);
     return apiJson({ deleted: true });
   } catch (error) {
