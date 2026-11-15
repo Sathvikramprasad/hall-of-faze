@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageShell } from "@/components/layout/PageShell";
 import { MemberCard } from "@/components/vault/MemberCard";
+import { VaultBanner, VaultDivider } from "@/components/vault/VaultBanner";
 import { VaultTimeline } from "@/components/vault/VaultTimeline";
 import { VAULT_END_YEAR, VAULT_START_YEAR, getMembers } from "@/lib/vault/queries";
 
@@ -14,26 +15,28 @@ export default function VaultPage() {
 
   return (
     <PageShell>
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-        <header className="max-w-3xl">
+      <VaultBanner>
+        <header className="max-w-3xl [text-shadow:0_2px_12px_rgba(0,0,0,0.9)]">
           <p className="font-mono text-sm font-semibold uppercase tracking-widest text-accent">
             {VAULT_START_YEAR}–{VAULT_END_YEAR}
           </p>
           <h1 className="mt-2 font-display text-5xl uppercase tracking-wide sm:text-7xl">The FaZe Vault</h1>
-          <p className="mt-4 text-lg leading-8 text-muted">
+          <p className="mt-4 text-lg leading-8 text-white/80">
             From the first trickshot videos to the latest titles. Every milestone links to its
             sources.
           </p>
         </header>
+      </VaultBanner>
 
-        <section aria-labelledby="timeline-heading" className="mt-12">
-          <h2 id="timeline-heading" className="sr-only">
-            Timeline
-          </h2>
-          <VaultTimeline />
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+        <section aria-labelledby="timeline-heading">
+          <VaultDivider id="timeline-heading">Timeline</VaultDivider>
+          <div className="mt-10">
+            <VaultTimeline />
+          </div>
         </section>
 
-        <section aria-labelledby="members-heading" className="mt-20">
+        <section aria-labelledby="members-heading" className="mt-20 scroll-mt-24">
           <h2 id="members-heading" className="font-display text-3xl uppercase tracking-wide">
             Members
           </h2>

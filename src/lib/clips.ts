@@ -24,7 +24,7 @@ import {
   type ValidationIssue,
 } from "@/lib/clip-rules";
 import { deleteObjectsQuietly, headObject, readObjectRange } from "@/lib/storage";
-import type { ModeratorClip, OwnerClip, PublicClip } from "@/lib/clip-types";
+import type { ModeratorClip, OwnerClip, PublicClip, PublicClipSource } from "@/lib/clip-types";
 import { getRemixMissionForChallenge } from "@/lib/remix";
 
 export { PROCESSING_TTL_MS };
@@ -63,6 +63,22 @@ function serializeFazeDna(clip: LeanClip): PublicClip["fazeDna"] {
   };
 }
 
+function publicSource(clip: LeanClip): PublicClipSource | null {
+  const source = clip.source;
+  if (!source) return null;
+  return {
+    platform: source.platform,
+    id: source.id,
+    url: source.url,
+    channelName: source.channelName ?? "",
+    verifiedOwner: Boolean(source.verifiedOwner),
+  };
+}
+
+function clipDuration(clip: LeanClip): number | null {
+  return clip.video?.durationSeconds ?? clip.source?.durationSeconds ?? null;
+}
+
 export function toPublicClip(clip: LeanClip, voteCount = clip.voteCount ?? 0): PublicClip {
   if (clip.status !== "approved" || !clip.approvedAt) {
     // Defensive: a non-approved clip must never be serialized publicly.
@@ -78,8 +94,9 @@ export function toPublicClip(clip: LeanClip, voteCount = clip.voteCount ?? 0): P
     status: "approved",
     voteEligible: true,
     voteCount,
-    durationSeconds: clip.video?.durationSeconds ?? null,
+    durationSeconds: clipDuration(clip),
     ...mediaUrls(id),
+    source: publicSource(clip),
     createdAt: new Date(clip.createdAt).toISOString(),
     approvedAt: new Date(clip.approvedAt).toISOString(),
     fazeDna: serializeFazeDna(clip),
@@ -97,8 +114,9 @@ export function toOwnerClip(clip: LeanClip, voteCount = clip.voteCount ?? 0): Ow
     status: clip.status,
     voteEligible: clip.status === "approved",
     voteCount,
-    durationSeconds: clip.video?.durationSeconds ?? null,
+    durationSeconds: clipDuration(clip),
     ...mediaUrls(id),
+    source: publicSource(clip),
     createdAt: new Date(clip.createdAt).toISOString(),
     approvedAt: clip.approvedAt ? new Date(clip.approvedAt).toISOString() : null,
     rejectionReason: clip.moderation?.rejectionReason ?? null,
@@ -115,12 +133,15 @@ export function toModeratorClip(
   return {
     ...toOwnerClip(clip, voteCount),
     remixMissionId,
-    video: {
-      contentType: clip.video.contentType,
-      size: clip.video.size,
-      originalName: clip.video.originalName ?? "",
-    },
-    thumbnail: { contentType: clip.thumbnail.contentType, size: clip.thumbnail.size },
+    video: clip.video?.key
+      ? {
+          contentType: clip.video.contentType,
+          size: clip.video.size,
+          originalName: clip.video.originalName ?? "",
+        }
+      : null,
+    thumbnail: clip.thumbnail?.key ? { contentType: clip.thumbnail.contentType, size: clip.thumbnail.size } : null,
+    sourceChannelId: clip.source?.channelId ?? null,
     statusHistory: (clip.statusHistory ?? []).map((h) => ({
       from: h.from ?? null,
       to: h.to,
@@ -399,7 +420,7 @@ export type FinalizeResult =
  * are deleted (record and objects) so nothing half-valid lingers.
  */
 export async function finalizeUpload(clip: LeanClip): Promise<FinalizeResult> {
-  if (clip.status !== "processing") {
+  if (clip.status !== "processing" || !clip.video?.key || !clip.thumbnail?.key) {
     return { ok: false, kind: "invalid", issues: [{ field: "status", message: "This upload was already finalized." }] };
   }
 

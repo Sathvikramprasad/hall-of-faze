@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { announceAuthChange } from "@/lib/client-auth";
 import type { AccountUser } from "@/types";
+import ChannelsSection from "@/components/profile/ChannelsSection";
 import MyClips from "@/components/profile/MyClips";
 import MmrPanel from "@/components/profile/MmrPanel";
 import ProfileHeader from "@/components/profile/ProfileHeader";
@@ -18,12 +19,18 @@ type AuthEnvelope = {
   error?: { message?: string };
 };
 
-export default function AccountPanel({ nextPath = null }: { nextPath?: string | null }) {
+export default function AccountPanel({
+  nextPath = null,
+  initialMode = "login",
+}: {
+  nextPath?: string | null;
+  initialMode?: Extract<Mode, "login" | "register">;
+}) {
   const router = useRouter();
   const ids = { name: useId(), email: useId(), password: useId() };
   const [user, setUser] = useState<AccountUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -133,6 +140,7 @@ export default function AccountPanel({ nextPath = null }: { nextPath?: string | 
       <Shell title="My Profile" wide>
         <div className="flex flex-col gap-6">
           <ProfileHeader user={user} onUserChange={setUser} onSignOut={signOut} signingOut={busy} />
+          <ChannelsSection user={user} onUserChange={setUser} />
           <MmrPanel />
           <MyClips />
           <SecuritySection email={user.email} />

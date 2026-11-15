@@ -7,6 +7,12 @@ export interface SocialLinks {
   youtube?: string;
 }
 
+/** Creator accounts the user proved they own by signing in to Twitch or YouTube. */
+export interface CreatorConnections {
+  twitch?: { login: string; displayName: string; verifiedAt: ISODateTime };
+  youtube?: { channelId: string; title: string; handle: string | null; verifiedAt: ISODateTime };
+}
+
 /** Public-safe user fields. Never put password hashes or session tokens here. */
 export interface User {
   id: ID;
@@ -24,4 +30,5 @@ export interface AccountUser extends User {
   emailVerified: boolean;
   /** Same-origin URL of the uploaded profile picture, or null to show the first letter of the name. */
   avatarUrl: string | null;
+  connections: CreatorConnections;
 }
