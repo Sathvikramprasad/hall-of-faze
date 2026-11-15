@@ -129,7 +129,7 @@ async function ChallengeContent({ params }: { params: Promise<{ id: string }> })
             <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-500">Approved entries</p>
             <h2 className="mt-2 text-3xl font-black">Vote for your favorite</h2>
           </div>
-          <Link href={`/upload?challengeId=${encodeURIComponent(challenge.id)}`} className="rounded-full border border-zinc-700 px-5 py-2.5 text-sm font-bold hover:border-red-500 hover:text-red-400">
+          <Link href={`/upload?challengeId=${encodeURIComponent(challenge.id)}`} className="rounded-full bg-accent-fill px-6 py-3 text-sm font-bold text-white shadow-lg shadow-red-900/40 transition-transform duration-200 ease-out hover:scale-105 focus-visible:scale-105 active:scale-100 motion-reduce:transition-none motion-reduce:hover:scale-100">
             Submit a clip
           </Link>
         </div>
