@@ -138,7 +138,7 @@ export async function getChallengeLeaderboard(
       approvedAt: 1,
       fazeDna: 1,
     })
-    .limit(200)
+    .limit(5000)
     .toArray();
   if (clips.length === 0) return [];
 
@@ -167,7 +167,7 @@ export async function getChallengeLeaderboard(
       };
     });
 
-  return rankLeaderboardEntries(entries).slice(0, Math.min(Math.max(1, limit), 50));
+  return rankLeaderboardEntries(entries).slice(0, Math.min(Math.max(1, limit), 5000));
 }
 
 export async function castVote(input: {
