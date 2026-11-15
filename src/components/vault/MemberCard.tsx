@@ -26,6 +26,7 @@ function MemberAvatar({ member }: { member: MemberProfile }) {
 export function MemberCard({ member }: { member: MemberProfile }) {
   const links = getChannelLinks(member);
   const profileHref = `/vault/members/${member.slug}`;
+  const visibleGames = member.games?.filter((game) => game !== member.currentRoster) ?? [];
 
   return (
     <li className="group/member relative">
@@ -38,10 +39,24 @@ export function MemberCard({ member }: { member: MemberProfile }) {
         {member.realName && <p className="text-sm text-muted">{member.realName}</p>}
         <p className="mt-2 text-sm">{member.role}</p>
         {member.era && <p className="mt-1 font-mono text-xs text-muted">{member.era}</p>}
+        {(member.currentRoster || visibleGames.length > 0) && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {member.currentRoster && (
+              <span className="rounded-full border border-accent/50 bg-accent/10 px-2.5 py-1 text-[11px] font-semibold text-accent">
+                Current · {member.currentRoster}
+              </span>
+            )}
+            {visibleGames.map((game) => (
+              <span key={game} className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-zinc-300">
+                {game}
+              </span>
+            ))}
+          </div>
+        )}
       </Link>
 
-      {/* Expanded card: opens over the tile after 1.5 s of hovering, closes as soon as the pointer leaves. */}
-      <div className="invisible absolute -inset-x-3 -top-3 z-20 hidden origin-top scale-95 rounded-2xl border border-accent bg-surface p-5 opacity-0 shadow-2xl shadow-black/70 transition-[opacity,scale,visibility] duration-200 ease-out group-hover/member:visible group-hover/member:scale-100 group-hover/member:opacity-100 group-hover/member:delay-[1500ms] motion-reduce:scale-100 motion-reduce:transition-none sm:block">
+      {/* Expanded card: opens quickly on hover and closes as soon as the pointer leaves. */}
+      <div className="invisible absolute -inset-x-3 -top-3 z-20 hidden origin-top scale-95 rounded-2xl border border-accent bg-surface p-5 opacity-0 shadow-2xl shadow-black/70 transition-[opacity,scale,visibility] duration-200 ease-out group-hover/member:visible group-hover/member:scale-100 group-hover/member:opacity-100 group-hover/member:delay-200 motion-reduce:scale-100 motion-reduce:transition-none sm:block">
         <div className="flex items-center gap-4">
           <MemberAvatar member={member} />
           <div className="min-w-0">
