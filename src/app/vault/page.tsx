@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { PageShell } from "@/components/layout/PageShell";
-import { HistorianPanel } from "@/components/vault/HistorianPanel";
 import { MemberCard } from "@/components/vault/MemberCard";
 import { VaultTimeline } from "@/components/vault/VaultTimeline";
 import { VAULT_END_YEAR, VAULT_START_YEAR, getMembers } from "@/lib/vault/queries";
 
 export const metadata: Metadata = {
   title: "The FaZe Vault | Hall of FaZe",
-  description: `A sourced timeline of FaZe history from ${VAULT_START_YEAR} to ${VAULT_END_YEAR}, with member profiles and an AI Historian.`,
+  description: `A sourced timeline of FaZe history from ${VAULT_START_YEAR} to ${VAULT_END_YEAR}, with member profiles and FaZe Bot.`,
 };
 
 export default function VaultPage() {
@@ -44,10 +43,6 @@ export default function VaultPage() {
             ))}
           </ul>
         </section>
-
-        <div className="mt-20">
-          <HistorianPanel />
-        </div>
       </div>
     </PageShell>
   );

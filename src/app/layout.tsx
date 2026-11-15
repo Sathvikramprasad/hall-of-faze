@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { Suspense } from "react";
+import { FazeBot } from "@/components/faze-bot/FazeBot";
 import { SiteNav } from "@/components/layout/SiteNav";
 import { SponsorRail } from "@/components/sponsor/SponsorRail";
 import "./globals.css";
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </Suspense>
         <SponsorRail />
         {children}
+        <FazeBot />
       </body>
     </html>
   );
