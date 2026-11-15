@@ -93,7 +93,7 @@ async function ChallengeList() {
 
 export default function NextUpPage() {
   return (
-    <main className="min-h-screen bg-black px-5 py-16 text-white sm:px-8">
+    <main className="min-h-screen px-5 py-16 text-white sm:px-8">
       <div className="mx-auto max-w-6xl">
         <p className="text-sm font-bold uppercase tracking-[0.3em] text-red-500">FaZe Next Up</p>
         <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight sm:text-6xl">Compete for the monthly Top 3</h1>
