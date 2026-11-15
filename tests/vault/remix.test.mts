@@ -19,7 +19,7 @@ test("maps the 2012 Vault moment to the existing Legacy Challenge", () => {
   assert.deepEqual(fromVault.clipRules, {
     minDurationSeconds: 10,
     maxDurationSeconds: 30,
-    maxBytes: 12 * 1024 * 1024,
+    maxBytes: 50 * 1024 * 1024,
   });
 });
 

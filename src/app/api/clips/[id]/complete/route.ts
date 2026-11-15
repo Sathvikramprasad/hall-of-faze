@@ -5,7 +5,7 @@ import { getViewer } from "@/lib/clip-identity";
 import { findClipById, finalizeUpload, toOwnerClip } from "@/lib/clips";
 import { isAutoAiReviewEnabled, runAutomatedModeration } from "@/lib/gemini-moderation";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 type Context = { params: Promise<{ id: string }> };
 

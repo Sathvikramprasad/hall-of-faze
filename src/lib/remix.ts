@@ -13,6 +13,8 @@ export const FAZE_DNA_SCORE_KEYS = [
   "legacyConnection",
 ] as const;
 
+export const REMIX_VIDEO_MAX_BYTES = 50 * 1024 * 1024;
+
 export type FazeDnaScoreKey = (typeof FAZE_DNA_SCORE_KEYS)[number];
 
 export type FazeDnaScores = Record<FazeDnaScoreKey, number>;
@@ -59,17 +61,17 @@ export const REMIX_MISSIONS: readonly RemixMission[] = [
     clipRules: {
       minDurationSeconds: 10,
       maxDurationSeconds: 30,
-      maxBytes: 12 * 1024 * 1024,
+      maxBytes: REMIX_VIDEO_MAX_BYTES,
     },
     submissionGuide: [
       "Use gameplay you created or have permission to submit.",
       "Keep the story easy to understand: setup, payoff and reaction.",
-      "Use a 10–30 second video no larger than 12 MB so Gemini can inspect the complete clip.",
+      "Use a 10–30 second video no larger than 50 MB so Gemini can inspect the complete clip.",
       "Community votes decide the winner; the FaZe DNA score is coaching and entertainment, not the ranking.",
     ],
     rules: [
       "Submit footage that you created or have permission to use.",
-      "Enter one original 10–30 second gameplay clip no larger than 12 MB (MP4, WebM or MOV), with a custom JPG, PNG or WebP thumbnail under 5 MB.",
+      "Enter one original 10–30 second gameplay clip no larger than 50 MB (MP4, WebM or MOV), with a custom JPG, PNG or WebP thumbnail under 5 MB.",
       "Clips must come from Counter-Strike 2, VALORANT or Call of Duty.",
       "Gemini checks the complete clip. Only a high-confidence clean result may auto-approve; anything flagged, uncertain or failed goes to a human moderator and is never auto-rejected.",
       "After approval, FaZe DNA provides coaching across skill, originality, hype and legacy connection. This score never affects rank.",
@@ -79,7 +81,7 @@ export const REMIX_MISSIONS: readonly RemixMission[] = [
     ],
     howToWin: [
       "Watch the official 2012 one-million-subscriber Teamtage in the Vault mission.",
-      "Create an original 10–30 second clutch, trickshot or high-skill play no larger than 12 MB.",
+      "Create an original 10–30 second clutch, trickshot or high-skill play no larger than 50 MB.",
       "Pass Gemini's guarded safety check or human moderation, then unlock your FaZe DNA coaching card.",
       "Share your approved entry and collect valid community votes. FaZe DNA never changes your rank.",
       "Finish in the community-voted Top 3 before the round closes.",

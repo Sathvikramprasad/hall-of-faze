@@ -24,7 +24,7 @@ const challenge = {
   gameIds: ["counter-strike-2", "valorant", "call-of-duty"],
   rules: [
     "Submit footage that you created or have permission to use.",
-    "Enter one original 10–30 second gameplay clip no larger than 12 MB (MP4, WebM or MOV), with a custom JPG, PNG or WebP thumbnail under 5 MB.",
+    "Enter one original 10–30 second gameplay clip no larger than 50 MB (MP4, WebM or MOV), with a custom JPG, PNG or WebP thumbnail under 5 MB.",
     "Clips must come from Counter-Strike 2, VALORANT or Call of Duty.",
     "Gemini checks the complete clip. Only a high-confidence clean result may auto-approve; anything flagged or uncertain goes to a human moderator and is never auto-rejected.",
     "After approval, FaZe DNA provides creative coaching across skill, originality, hype and legacy connection. This score never affects the ranking.",
@@ -42,7 +42,7 @@ const challenge = {
   ],
   howToWin: [
     "Watch the official 2012 one-million-subscriber Teamtage in the Vault mission.",
-    "Create an original 10–30 second clutch, trickshot or high-skill play no larger than 12 MB.",
+    "Create an original 10–30 second clutch, trickshot or high-skill play no larger than 50 MB.",
     "Pass Gemini's guarded safety check or human moderation, then unlock your FaZe DNA coaching card.",
     "Share your approved entry and collect valid community votes. FaZe DNA never changes your rank.",
     "Finish in the community-voted Top 3 before the round closes.",

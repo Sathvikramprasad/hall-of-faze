@@ -19,9 +19,15 @@ import Clip, {
   type ClipDocument,
   type FazeDnaAnalysisResult,
 } from "@/models/Clip";
+import {
+  deleteGeminiFile,
+  GEMINI_FILE_VIDEO_MAX_BYTES,
+  GEMINI_INLINE_VIDEO_MAX_BYTES,
+  type GeminiUploadedFile,
+  uploadStorageVideoToGemini,
+} from "@/lib/gemini-file";
 
 const DEFAULT_MODEL = "gemini-3.5-flash";
-const INLINE_VIDEO_MAX_BYTES = 12 * 1024 * 1024;
 const INLINE_MEDIA_BUDGET_BYTES = 14 * 1024 * 1024;
 
 export class FazeDnaError extends Error {
@@ -152,68 +158,88 @@ async function callGemini(
 ): Promise<FazeDnaAnalysisResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new FazeDnaError("GEMINI_API_KEY is not set.");
-  if (clip.video.size > INLINE_VIDEO_MAX_BYTES) {
-    throw new FazeDnaError("FaZe DNA analysis requires a video no larger than 12 MB.");
+  if (clip.video.size > GEMINI_FILE_VIDEO_MAX_BYTES) {
+    throw new FazeDnaError("FaZe DNA analysis requires a video no larger than 50 MB.");
   }
 
   const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
   const inputs = ["text", "video"];
-  const video = await readObject(clip.video.key, INLINE_VIDEO_MAX_BYTES);
-  const parts: Record<string, unknown>[] = [
-    {
-      inlineData: {
-        mimeType: clip.video.contentType,
-        data: Buffer.from(video).toString("base64"),
-      },
-    },
-  ];
-  if (clip.video.size + clip.thumbnail.size <= INLINE_MEDIA_BUDGET_BYTES) {
-    const thumbnail = await readObject(clip.thumbnail.key, THUMBNAIL_MAX_BYTES);
-    parts.push({
-      inlineData: {
-        mimeType: clip.thumbnail.contentType,
-        data: Buffer.from(thumbnail).toString("base64"),
-      },
-    });
-    inputs.push("thumbnail");
-  }
-  parts.push({ text: analysisPrompt(clip, mission, inputs) });
+  const parts: Record<string, unknown>[] = [];
+  let uploadedFile: GeminiUploadedFile | null = null;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts }],
-        generationConfig: {
-          temperature: 0.2,
-          responseMimeType: "application/json",
-          responseJsonSchema: responseSchema,
-        },
-      }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(60_000),
-    },
-  );
-
-  const data = (await response.json().catch(() => ({}))) as GeminiResponse;
-  if (!response.ok) {
-    throw new FazeDnaError(
-      `Gemini request failed (${response.status}): ${data.error?.message ?? "unknown error"}`,
-    );
-  }
-  if (data.promptFeedback?.blockReason) {
-    throw new FazeDnaError(`Gemini could not analyze this upload (${data.promptFeedback.blockReason}).`);
-  }
-  const text = data.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
-  let parsed: unknown;
   try {
-    parsed = JSON.parse(text);
-  } catch {
-    throw new FazeDnaError("Gemini did not return valid JSON.");
+    if (clip.video.size <= GEMINI_INLINE_VIDEO_MAX_BYTES) {
+      const video = await readObject(clip.video.key, GEMINI_INLINE_VIDEO_MAX_BYTES);
+      parts.push({
+        inlineData: {
+          mimeType: clip.video.contentType,
+          data: Buffer.from(video).toString("base64"),
+        },
+      });
+    } else {
+      uploadedFile = await uploadStorageVideoToGemini({
+        apiKey,
+        storageKey: clip.video.key,
+        size: clip.video.size,
+        mimeType: clip.video.contentType,
+        displayName: `hall-of-faze-dna-${String(clip._id)}`,
+      });
+      parts.push({ fileData: { mimeType: uploadedFile.mimeType, fileUri: uploadedFile.uri } });
+    }
+
+    const inlineVideoBytes = clip.video.size <= GEMINI_INLINE_VIDEO_MAX_BYTES ? clip.video.size : 0;
+    if (inlineVideoBytes + clip.thumbnail.size <= INLINE_MEDIA_BUDGET_BYTES) {
+      const thumbnail = await readObject(clip.thumbnail.key, THUMBNAIL_MAX_BYTES);
+      parts.push({
+        inlineData: {
+          mimeType: clip.thumbnail.contentType,
+          data: Buffer.from(thumbnail).toString("base64"),
+        },
+      });
+      inputs.push("thumbnail");
+    }
+    parts.push({ text: analysisPrompt(clip, mission, inputs) });
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts }],
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: "application/json",
+            responseJsonSchema: responseSchema,
+          },
+        }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(60_000),
+      },
+    );
+
+    const data = (await response.json().catch(() => ({}))) as GeminiResponse;
+    if (!response.ok) {
+      throw new FazeDnaError(
+        `Gemini request failed (${response.status}): ${data.error?.message ?? "unknown error"}`,
+      );
+    }
+    if (data.promptFeedback?.blockReason) {
+      throw new FazeDnaError(
+        `Gemini could not analyze this upload (${data.promptFeedback.blockReason}).`,
+      );
+    }
+    const text = data.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      throw new FazeDnaError("Gemini did not return valid JSON.");
+    }
+    return parseAnalysis(parsed, mission, model, inputs);
+  } finally {
+    if (uploadedFile) await deleteGeminiFile(uploadedFile, apiKey);
   }
-  return parseAnalysis(parsed, mission, model, inputs);
 }
 
 /**

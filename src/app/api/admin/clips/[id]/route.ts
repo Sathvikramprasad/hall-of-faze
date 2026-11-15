@@ -8,7 +8,7 @@ import type { ClipStatus } from "@/lib/clip-rules";
 import type { ModerationAction } from "@/lib/clip-types";
 import { runFazeDnaAnalysis } from "@/lib/gemini-remix";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 type Context = { params: Promise<{ id: string }> };
 
