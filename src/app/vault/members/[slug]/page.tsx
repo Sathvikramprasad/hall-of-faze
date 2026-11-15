@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { PageShell } from "@/components/layout/PageShell";
 import { MemberChannels, MemberChannelsSkeleton } from "@/components/vault/MemberChannels";
+import { CHANNEL_BUTTON_COLORS } from "@/components/vault/channel-colors";
 import { SourceList } from "@/components/vault/SourceList";
 import { VideoEmbed } from "@/components/vault/VideoEmbed";
 import {
@@ -13,6 +14,7 @@ import {
   getMember,
   getMembers,
 } from "@/lib/vault/queries";
+import { getChannelLinks } from "@/lib/vault/channels";
 
 // Cache Components requires at least one param here; we prerender every
 // curated member. Unknown slugs fall through to notFound().
@@ -38,6 +40,7 @@ export default async function MemberPage(props: PageProps<"/vault/members/[slug]
   if (!member) notFound();
 
   const entries = getEntriesForMember(member.slug);
+  const channelLinks = getChannelLinks(member);
 
   return (
     <PageShell>
@@ -50,12 +53,48 @@ export default async function MemberPage(props: PageProps<"/vault/members/[slug]
           <h1 className="font-display text-5xl uppercase tracking-wide sm:text-6xl">{member.handle}</h1>
           {member.realName && <p className="mt-2 text-lg text-muted">{member.realName}</p>}
           <p className="mt-4 inline-flex flex-wrap gap-2 text-sm">
+            {member.currentRoster && (
+              <span className="rounded-full border border-accent/60 px-3 py-1 font-medium">
+                Current · {member.currentRoster}
+              </span>
+            )}
             <span className="rounded-full bg-accent/15 px-3 py-1 font-medium text-accent">{member.role}</span>
             {member.era && (
               <span className="rounded-full bg-white/10 px-3 py-1 font-mono">{member.era}</span>
             )}
           </p>
         </header>
+
+        {member.games?.length ? (
+          <p className="mt-4 text-sm">
+            <span className="font-mono text-xs font-semibold uppercase tracking-widest text-muted">Games</span>{" "}
+            {member.games.join(" · ")}
+          </p>
+        ) : null}
+
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+          <h2 className="font-mono text-xs font-semibold uppercase tracking-widest text-muted">Channels</h2>
+          {channelLinks.length > 0 ? (
+            <ul className="flex flex-wrap gap-2">
+              {channelLinks.map((link) => (
+                <li key={link.platform}>
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-2 rounded-md px-3 py-2 font-bold text-white transition-colors ${CHANNEL_BUTTON_COLORS[link.platform]}`}
+                  >
+                    {link.platform}
+                    {link.name && <span className="font-normal text-white/90">{link.name}</span>}
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted">No YouTube or Twitch channels listed.</p>
+          )}
+        </div>
 
         <p className="mt-8 text-lg leading-8">{member.bio}</p>
         <SourceList sources={member.sources} className="mt-4" />

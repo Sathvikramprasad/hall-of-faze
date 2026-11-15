@@ -59,6 +59,9 @@ export type VideoEmbed = {
   year?: number;
 };
 
+/** A FaZe team or division. Groups today's rosters on the Vault page. */
+export type MemberDivision = "Counter-Strike 2" | "Rainbow Six Siege" | "Call of Duty" | "Content";
+
 export type MemberProfile = {
   slug: string;
   /** Gamer tag as commonly written, e.g. "FaZe Banks". */
@@ -74,6 +77,17 @@ export type MemberProfile = {
   role: string;
   /** Free-text era, e.g. "2010–" or "2024–2025". */
   era?: string;
+  /**
+   * The FaZe roster they're on today (as of ROSTER_AS_OF in members.ts). Leave it
+   * unset for founders and former members; they're listed under Past members.
+   */
+  currentRoster?: MemberDivision;
+  /**
+   * Games they play or are known for, e.g. ["Counter-Strike 2"]. Shown on the
+   * member's hover card and profile page. Leave it out when no game fits
+   * (for example a Just Chatting streamer).
+   */
+  games?: string[];
   bio: string;
   sources: [SourceLink, ...SourceLink[]];
   videos: VideoEmbed[];

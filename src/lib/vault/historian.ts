@@ -1,5 +1,6 @@
 import {
   getMembers,
+  getRosterAsOfLabel,
   getVaultEntries,
   getVaultStats,
   findRelatedEntries,
@@ -122,10 +123,17 @@ export function buildVaultContext(): string {
         ` Sources: ${e.sources.map((source) => source.label).join("; ")}`,
     )
     .join("\n");
+  const rosterAsOf = getRosterAsOfLabel();
   const members = getMembers()
     .map(
       (m) =>
-        `[member:${m.slug}] ${m.handle}${m.realName ? ` (${m.realName})` : ""}, ${m.role}. ${m.bio}` +
+        `[member:${m.slug}] ${m.handle}${m.realName ? ` (${m.realName})` : ""}, ${m.role}` +
+        (m.era ? ` [${m.era}]` : "") +
+        (m.games?.length ? `, plays ${m.games.join(", ")}` : "") +
+        (m.currentRoster
+          ? ` — on FaZe's current ${m.currentRoster} roster as of ${rosterAsOf}`
+          : " — not on FaZe's current rosters") +
+        `. ${m.bio}` +
         ` Sources: ${m.sources.map((source) => `${source.label} (${source.url})`).join("; ")}`,
     )
     .join("\n");

@@ -96,7 +96,9 @@ export default function NextUpPage() {
     <main className="min-h-screen px-5 py-16 text-white sm:px-8">
       <div className="mx-auto max-w-6xl">
         <p className="text-sm font-bold uppercase tracking-[0.3em] text-red-500">FaZe Next Up</p>
-        <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight sm:text-6xl">Compete for the monthly Top 3</h1>
+        <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight sm:text-6xl">
+          Compete for the monthly <span className="whitespace-nowrap">Top 3</span>
+        </h1>
         <p className="mt-5 max-w-2xl text-lg leading-8 text-zinc-400">
           Enter an active challenge, submit an original gaming clip, and earn verified community votes after approval.
         </p>

@@ -1,7 +1,13 @@
 import { vaultEntries } from "./entries";
-import { memberProfiles } from "./members";
+import { ROSTER_AS_OF, memberProfiles } from "./members";
 import { vaultStats } from "./stats";
-import type { MemberProfile, VaultCategory, VaultEntry, VaultStat } from "./types";
+import type {
+  MemberDivision,
+  MemberProfile,
+  VaultCategory,
+  VaultEntry,
+  VaultStat,
+} from "./types";
 
 // Read helpers for the curated Vault data. Everything here is synchronous and
 // static today; when the data moves to MongoDB, keep these signatures and swap
@@ -66,6 +72,31 @@ export function getEntry(id: string): VaultEntry | undefined {
 
 export function getMembers(): MemberProfile[] {
   return memberProfiles;
+}
+
+/** Order of current members on the Vault page: grouped by team, in this order. */
+export const MEMBER_DIVISIONS: MemberDivision[] = [
+  "Counter-Strike 2",
+  "Rainbow Six Siege",
+  "Call of Duty",
+  "Content",
+];
+
+/** Everyone on a FaZe roster today, grouped by team in MEMBER_DIVISIONS order. */
+export function getCurrentMembers(): MemberProfile[] {
+  return MEMBER_DIVISIONS.flatMap((division) =>
+    memberProfiles.filter((member) => member.currentRoster === division),
+  );
+}
+
+/** Founders and former members: everyone not on a current roster, in curated order. */
+export function getPastMembers(): MemberProfile[] {
+  return memberProfiles.filter((member) => !member.currentRoster);
+}
+
+/** When the current rosters were last checked, e.g. "Nov 2026". */
+export function getRosterAsOfLabel(): string {
+  return formatEntryDate({ date: ROSTER_AS_OF, datePrecision: "month" });
 }
 
 export function getMember(slug: string): MemberProfile | undefined {
