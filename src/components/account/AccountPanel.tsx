@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useState, type FormEvent } from "react";
+import { announceAuthChange } from "@/lib/client-auth";
 import type { AccountUser } from "@/types";
 
 type Mode = "login" | "register";
@@ -60,6 +61,7 @@ export default function AccountPanel() {
         return;
       }
       setUser(body.data.user);
+      announceAuthChange();
       setPassword("");
       setMessage("Signed in.");
     } catch {
@@ -76,6 +78,7 @@ export default function AccountPanel() {
       const response = await fetch("/api/auth/logout", { method: "POST" });
       if (!response.ok) throw new Error("logout failed");
       setUser(null);
+      announceAuthChange();
       setMessage("Signed out.");
     } catch {
       setMessage("Could not sign out. Try again.");
