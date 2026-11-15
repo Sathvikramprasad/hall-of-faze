@@ -41,10 +41,26 @@ export function serializeUser(user: HydratedDocument<IUser>): AccountUser {
       ...(user.socialLinks?.twitch ? { twitch: user.socialLinks.twitch } : {}),
       ...(user.socialLinks?.youtube ? { youtube: user.socialLinks.youtube } : {}),
     },
+    emailVerified: isEmailVerified(user),
+    avatarUrl: avatarUrlFor(user),
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };
 }
+
+/** Legacy accounts (no flag stored) count as verified; new accounts start false. */
+export function isEmailVerified(user: Pick<IUser, "emailVerified">): boolean {
+  return user.emailVerified !== false;
+}
+
+export function avatarUrlFor(user: Pick<IUser, "_id" | "avatarKey" | "avatarVersion">): string | null {
+  return user.avatarKey ? `/api/users/${user._id.toHexString()}/avatar?v=${user.avatarVersion ?? 0}` : null;
+}
+
+export type SessionLookupOptions = {
+  /** Return accounts that haven't verified their email yet (profile, verification and sign-out routes only). */
+  allowUnverified?: boolean;
+};
 
 export async function startSession(response: NextResponse, userId: IUser["_id"]) {
   const token = randomBytes(32).toString("base64url");
@@ -62,6 +78,14 @@ export async function startSession(response: NextResponse, userId: IUser["_id"])
   });
 }
 
+/** Signs the account out everywhere except, optionally, the current session (after a password change). */
+export async function endOtherSessions(userId: IUser["_id"], keepToken?: string | null) {
+  await SessionModel.deleteMany({
+    userId,
+    ...(keepToken ? { tokenHash: { $ne: digest(keepToken) } } : {}),
+  });
+}
+
 export async function endSession(request: NextRequest, response: NextResponse) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   if (token) await SessionModel.deleteOne({ tokenHash: digest(token) });
@@ -75,14 +99,23 @@ export async function endSession(request: NextRequest, response: NextResponse) {
 }
 
 /** Returns null unless the session token is valid and the account exists. */
-export async function getCurrentUser(request: NextRequest): Promise<HydratedDocument<IUser> | null> {
+export async function getCurrentUser(
+  request: NextRequest,
+  options: SessionLookupOptions = {},
+): Promise<HydratedDocument<IUser> | null> {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  return getUserFromSessionToken(token);
+  return getUserFromSessionToken(token, options);
 }
 
 /** Shared session lookup for server components and feature adapters. */
+/**
+ * Unverified accounts are treated as signed out everywhere except where
+ * `allowUnverified` is passed, so uploads, votes and moderation all require a
+ * verified email without each feature checking it.
+ */
 export async function getUserFromSessionToken(
   token: string | null | undefined,
+  options: SessionLookupOptions = {},
 ): Promise<HydratedDocument<IUser> | null> {
   if (!token || token.length > 200) return null;
   await connectDB();
@@ -91,7 +124,9 @@ export async function getUserFromSessionToken(
     expiresAt: { $gt: new Date() },
   });
   if (!session) return null;
-  return UserModel.findById(session.userId);
+  const user = await UserModel.findById(session.userId);
+  if (!user) return null;
+  return options.allowUnverified || isEmailVerified(user) ? user : null;
 }
 
 export async function requireRole(request: NextRequest, role: Role) {

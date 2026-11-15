@@ -1,14 +1,18 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { announceAuthChange } from "@/lib/client-auth";
 import type { AccountUser } from "@/types";
+import MyClips from "@/components/profile/MyClips";
+import ProfileHeader from "@/components/profile/ProfileHeader";
+import ResetPasswordForm from "@/components/profile/ResetPasswordForm";
+import SecuritySection from "@/components/profile/SecuritySection";
+import VerifyEmailCard from "@/components/profile/VerifyEmailCard";
 
-type Mode = "login" | "register";
+type Mode = "login" | "register" | "forgot";
 type AuthEnvelope = {
   success: boolean;
-  data?: { user: AccountUser; authenticated?: boolean; message?: string };
+  data?: { user: AccountUser; authenticated?: boolean; message?: string; verificationEmailSent?: boolean };
   error?: { message?: string };
 };
 
@@ -63,7 +67,13 @@ export default function AccountPanel() {
       setUser(body.data.user);
       announceAuthChange();
       setPassword("");
-      setMessage("Signed in.");
+      setMessage(
+        mode === "register"
+          ? body.data.verificationEmailSent === false
+            ? "Account created, but we couldn't send the email. Use “Send a new code”."
+            : null
+          : null,
+      );
     } catch {
       setMessage("Could not reach the server. Try again.");
     } finally {
@@ -78,6 +88,7 @@ export default function AccountPanel() {
       const response = await fetch("/api/auth/logout", { method: "POST" });
       if (!response.ok) throw new Error("logout failed");
       setUser(null);
+      setMode("login");
       announceAuthChange();
       setMessage("Signed out.");
     } catch {
@@ -87,31 +98,52 @@ export default function AccountPanel() {
     }
   }
 
-  if (loading) return <p className="text-muted">Checking your session…</p>;
+  if (loading) return <Shell title="My Profile"><p className="text-muted">Checking your session…</p></Shell>;
+
+  if (user && !user.emailVerified) {
+    return (
+      <Shell title="Almost there" subtitle="Verify your email to start uploading clips and voting.">
+        <VerifyEmailCard
+          user={user}
+          initialNote={message}
+          onVerified={(verified) => { setUser(verified); setMessage(null); announceAuthChange(); }}
+          onSignOut={signOut}
+        />
+      </Shell>
+    );
+  }
+
   if (user) {
     return (
-      <section className="rounded-2xl border border-white/10 bg-surface p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xl font-bold">{user.displayName}</p>
-            <p className="mt-1 text-sm text-muted">{user.email}</p>
-            <p className="mt-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide">{user.role}</p>
-          </div>
-          <button type="button" onClick={signOut} disabled={busy} className="rounded-lg border border-white/20 px-4 py-2 disabled:opacity-50">
-            {busy ? "Signing out…" : "Sign out"}
-          </button>
+      <Shell title="My Profile" wide>
+        <div className="flex flex-col gap-6">
+          <ProfileHeader user={user} onUserChange={setUser} onSignOut={signOut} signingOut={busy} />
+          <MyClips />
+          <SecuritySection email={user.email} />
+          {user.role === "moderator" && (
+            <a href="/admin/clips" className="self-start rounded-lg border border-white/20 px-4 py-2 text-sm">Open moderation</a>
+          )}
         </div>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/upload" className="rounded-lg bg-accent-fill px-4 py-2 font-semibold text-white">Upload a clip</Link>
-          {user.role === "moderator" && <Link href="/admin/clips" className="rounded-lg border border-white/20 px-4 py-2">Open moderation</Link>}
-        </div>
-        {message && <p role="status" className="mt-4 text-sm text-muted">{message}</p>}
-      </section>
+      </Shell>
+    );
+  }
+
+  if (mode === "forgot") {
+    return (
+      <Shell title="Reset your password" subtitle="We'll email you a 6-digit code.">
+        <section className="rounded-2xl border border-white/10 bg-surface p-6">
+          <ResetPasswordForm
+            onCancel={() => { setMode("login"); setMessage(null); }}
+            onDone={(done) => { setMode("login"); setMessage(done); }}
+          />
+        </section>
+      </Shell>
     );
   }
 
   const fieldClass = "w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2";
   return (
+    <Shell title="Sign in" subtitle="One account powers clip uploads, community votes, and moderator access.">
     <section className="rounded-2xl border border-white/10 bg-surface p-6">
       <div className="mb-6 flex rounded-lg bg-black/20 p-1" role="tablist" aria-label="Account action">
         {(["login", "register"] as const).map((nextMode) => (
@@ -125,10 +157,22 @@ export default function AccountPanel() {
           <div><label htmlFor={ids.name} className="mb-1 block text-sm font-medium">Display name</label><input id={ids.name} className={fieldClass} value={displayName} onChange={(event) => setDisplayName(event.target.value)} minLength={2} maxLength={50} required /></div>
         )}
         <div><label htmlFor={ids.email} className="mb-1 block text-sm font-medium">Email</label><input id={ids.email} type="email" autoComplete="email" className={fieldClass} value={email} onChange={(event) => setEmail(event.target.value)} required /></div>
-        <div><label htmlFor={ids.password} className="mb-1 block text-sm font-medium">Password</label><input id={ids.password} type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} className={fieldClass} value={password} onChange={(event) => setPassword(event.target.value)} minLength={mode === "register" ? 12 : undefined} maxLength={128} required /><p className="mt-1 text-xs text-muted">{mode === "register" ? "Use at least 12 characters." : ""}</p></div>
+        <div><label htmlFor={ids.password} className="mb-1 block text-sm font-medium">Password</label><input id={ids.password} type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} className={fieldClass} value={password} onChange={(event) => setPassword(event.target.value)} minLength={mode === "register" ? 12 : undefined} maxLength={128} required /><div className="mt-1 flex justify-between text-xs text-muted"><span>{mode === "register" ? "Use at least 12 characters." : ""}</span>{mode === "login" && <button type="button" onClick={() => { setMode("forgot"); setMessage(null); }} className="font-semibold underline underline-offset-2">Forgot password?</button>}</div></div>
+        {mode === "register" && <p className="text-xs text-muted">We&apos;ll email you a code to verify your address.</p>}
         {message && <p role="alert" className="text-sm text-amber-300">{message}</p>}
         <button type="submit" disabled={busy} className="rounded-lg bg-accent-fill px-4 py-2 font-semibold text-white disabled:opacity-50">{busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}</button>
       </form>
     </section>
+    </Shell>
+  );
+}
+
+function Shell({ title, subtitle, wide = false, children }: { title: string; subtitle?: string; wide?: boolean; children: React.ReactNode }) {
+  return (
+    <div className={wide ? "w-full" : "mx-auto w-full max-w-xl"}>
+      <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+      {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
+      <div className="mt-8">{children}</div>
+    </div>
   );
 }

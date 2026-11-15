@@ -15,6 +15,7 @@ export function SiteNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const [needsVerification, setNeedsVerification] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -22,9 +23,15 @@ export function SiteNav() {
     async function checkSession() {
       try {
         const response = await fetch("/api/user/me", { cache: "no-store" });
+        const body = response.ok
+          ? ((await response.json().catch(() => null)) as { data?: { user?: { emailVerified?: boolean } } } | null)
+          : null;
+        // An account counts as signed in for navigation only once its email is verified.
+        const verified = response.ok && body?.data?.user?.emailVerified !== false;
         if (!cancelled) {
-          setAuthenticated(response.ok);
-          if (!response.ok) setOpen(false);
+          setAuthenticated(verified);
+          setNeedsVerification(response.ok && !verified);
+          if (!verified) setOpen(false);
         }
       } catch {
         if (!cancelled) {
@@ -102,7 +109,7 @@ export function SiteNav() {
             aria-current={pathname === "/account" ? "page" : undefined}
             className="rounded-md bg-accent-fill px-4 py-2 text-sm font-semibold text-white"
           >
-            Sign in
+            {needsVerification ? "Verify email" : "Sign in"}
           </Link>
         ) : null}
       </nav>

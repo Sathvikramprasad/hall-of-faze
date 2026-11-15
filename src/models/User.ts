@@ -8,6 +8,17 @@ export interface IUser {
   displayName: string;
   role: Role;
   socialLinks: SocialLinks;
+  /**
+   * False until the emailed code is entered. Accounts created before email
+   * verification existed have no value and are treated as verified.
+   */
+  emailVerified?: boolean;
+  emailVerifiedAt?: Date | null;
+  /** Private storage key of the profile picture, or null for the letter avatar. */
+  avatarKey?: string | null;
+  avatarContentType?: string | null;
+  /** Bumped on every change so browsers fetch the new picture. */
+  avatarVersion?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,6 +33,11 @@ const userSchema = new Schema<IUser>(
       twitch: { type: String },
       youtube: { type: String },
     },
+    emailVerified: { type: Boolean },
+    emailVerifiedAt: { type: Date, default: null },
+    avatarKey: { type: String, default: null },
+    avatarContentType: { type: String, default: null },
+    avatarVersion: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
