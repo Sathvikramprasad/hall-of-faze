@@ -1,11 +1,50 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { MemberProfile } from "@/lib/vault/types";
 
-export function MemberCard({ member }: { member: MemberProfile }) {
+function channelLinks(member: MemberProfile) {
+  const c = member.channels;
+  const links: { label: string; href: string; className: string }[] = [];
+  if (c?.youtubeChannelId || c?.youtubeHandle) {
+    links.push({
+      label: "YouTube",
+      href: c.youtubeChannelId ? `https://www.youtube.com/channel/${c.youtubeChannelId}` : `https://www.youtube.com/${c.youtubeHandle}`,
+      className: "bg-[#cc0000] hover:bg-[#a80000]",
+    });
+  }
+  if (c?.twitch) {
+    links.push({ label: "Twitch", href: `https://www.twitch.tv/${c.twitch}`, className: "bg-[#9146ff] hover:bg-[#772ce8]" });
+  }
+  return links;
+}
+
+function MemberAvatar({ member }: { member: MemberProfile }) {
+  if (member.photo) {
+    return <Image src={member.photo} alt="" width={64} height={64} className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-accent-fill" />;
+  }
   return (
-    <li>
+    <span aria-hidden="true" className="faze-camo flex h-16 w-16 shrink-0 items-center justify-center rounded-full ring-2 ring-accent-fill">
+      <span className="font-display text-3xl text-white [text-shadow:0_2px_6px_#000]">
+        {member.handle.replace(/^FaZe\s+/i, "").charAt(0).toUpperCase()}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * A member tile on the Vault page. It grows slightly on hover, and after
+ * hovering for a moment it opens into a larger card with their photo, a short
+ * bio and links to their YouTube and Twitch channels. Keyboard and touch users
+ * get the same details on the member's profile page.
+ */
+export function MemberCard({ member }: { member: MemberProfile }) {
+  const links = channelLinks(member);
+  const profileHref = `/vault/members/${member.slug}`;
+
+  return (
+    <li className="group/member relative">
       <Link
-        href={`/vault/members/${member.slug}`}
+        href={profileHref}
         // Grows slightly on hover and keyboard focus; stays still for people who reduce motion.
         className="group block h-full rounded-xl border border-white/10 bg-surface p-5 transition-[border-color,scale,box-shadow] duration-200 ease-out hover:scale-[1.04] hover:border-accent hover:shadow-xl hover:shadow-accent-fill/15 focus-visible:scale-[1.04] motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:focus-visible:scale-100"
       >
@@ -14,6 +53,42 @@ export function MemberCard({ member }: { member: MemberProfile }) {
         <p className="mt-2 text-sm">{member.role}</p>
         {member.era && <p className="mt-1 font-mono text-xs text-muted">{member.era}</p>}
       </Link>
+
+      {/* Expanded card: opens over the tile after 1.5 s of hovering, closes as soon as the pointer leaves. */}
+      <div className="invisible absolute -inset-x-3 -top-3 z-20 hidden origin-top scale-95 rounded-2xl border border-accent bg-surface p-5 opacity-0 shadow-2xl shadow-black/70 transition-[opacity,scale,visibility] duration-200 ease-out group-hover/member:visible group-hover/member:scale-100 group-hover/member:opacity-100 group-hover/member:delay-[1500ms] motion-reduce:scale-100 motion-reduce:transition-none sm:block">
+        <div className="flex items-center gap-4">
+          <MemberAvatar member={member} />
+          <div className="min-w-0">
+            <Link href={profileHref} tabIndex={-1} className="text-lg font-bold text-accent hover:underline">
+              {member.handle}
+            </Link>
+            {member.realName && <p className="text-sm text-muted">{member.realName}</p>}
+            <p className="font-mono text-xs text-muted">
+              {member.role}
+              {member.era ? ` · ${member.era}` : ""}
+            </p>
+          </div>
+        </div>
+        <p className="mt-4 text-sm leading-6">{member.bio}</p>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {links.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              tabIndex={-1}
+              className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white transition-colors ${link.className}`}
+            >
+              {link.label}
+            </a>
+          ))}
+          {links.length === 0 && <span className="text-xs text-muted">No channels listed</span>}
+          <Link href={profileHref} tabIndex={-1} className="ml-auto text-sm font-semibold text-accent underline underline-offset-4">
+            Full profile &rarr;
+          </Link>
+        </div>
+      </div>
     </li>
   );
 }
