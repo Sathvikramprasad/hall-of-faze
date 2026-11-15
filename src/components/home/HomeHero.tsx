@@ -6,17 +6,22 @@ import { useState, type FocusEvent } from "react";
 import { HERO_DEFAULT_IMAGE, HERO_HEADLINE, HERO_MENU, type HeroMenuItem } from "@/lib/home-hero";
 
 /*
- * Wheel geometry, in px of the wheel's own 440×600 design box (the whole box is
- * scaled down on smaller screens). The hub sits on the left; menu items fan out
- * to its right at evenly spaced angles, top to bottom.
+ * Wheel geometry, in px of the wheel's own 480×600 design box (the whole box is
+ * scaled down on smaller screens). The hub sits on the left; menu labels sit on
+ * an arc to its right, and the divider lines run through the gaps between them,
+ * so every label stays inside its own slice. The angles were fitted to the
+ * labels' widths in Anton at 2rem (with room for the hover zoom); re-check them
+ * if a label's text or size changes.
  */
-const BOX = { width: 440, height: 600 };
+const BOX = { width: 480, height: 600 };
 const HUB = { x: 96, y: 300, r: 76 };
 const RING_R = 106; // thin arc around the hub
-const LABEL_R = 170; // where each label starts
-const RAY = { from: 116, to: 310 }; // divider lines between items
-const STEP = 35; // degrees between items
-const ANGLES = HERO_MENU.map((_, i) => (i - (HERO_MENU.length - 1) / 2) * STEP); // -70 … 70
+const LABEL_R = 185; // where each label's left edge sits
+const LABEL_ANGLES = [-88, -34, 0, 34, 88]; // one per menu item, top to bottom
+const DIVIDERS = [-95, -44, -12, 12, 44, 95]; // slice edges: item i spans DIVIDERS[i]..DIVIDERS[i + 1]
+const RAY = { from: 116, to: 310 }; // divider line length
+const INDICATOR_SPAN = 18; // degrees covered by the bright arc pointing at the active item
+const SLICES = HERO_MENU.map((_, i) => ({ from: DIVIDERS[i], to: DIVIDERS[i + 1], mid: (DIVIDERS[i] + DIVIDERS[i + 1]) / 2 }));
 
 const polar = (r: number, deg: number) => {
   const rad = (deg * Math.PI) / 180;
@@ -24,13 +29,14 @@ const polar = (r: number, deg: number) => {
 };
 const round = (n: number) => Math.round(n * 10) / 10;
 
-/** Annular sector centred on 0°, rotated to the active item. */
-function sectorPath(inner: number, outer: number, halfAngle: number) {
-  const a = polar(outer, -halfAngle);
-  const b = polar(outer, halfAngle);
-  const c = polar(inner, halfAngle);
-  const d = polar(inner, -halfAngle);
-  return `M${round(a.x)} ${round(a.y)}A${outer} ${outer} 0 0 1 ${round(b.x)} ${round(b.y)}L${round(c.x)} ${round(c.y)}A${inner} ${inner} 0 0 0 ${round(d.x)} ${round(d.y)}Z`;
+/** Annular sector between two angles (degrees, clockwise from 3 o'clock). */
+function sectorPath(inner: number, outer: number, from: number, to: number) {
+  const a = polar(outer, from);
+  const b = polar(outer, to);
+  const c = polar(inner, to);
+  const d = polar(inner, from);
+  const large = to - from > 180 ? 1 : 0;
+  return `M${round(a.x)} ${round(a.y)}A${outer} ${outer} 0 ${large} 1 ${round(b.x)} ${round(b.y)}L${round(c.x)} ${round(c.y)}A${inner} ${inner} 0 ${large} 0 ${round(d.x)} ${round(d.y)}Z`;
 }
 
 function arcPath(r: number, from: number, to: number) {
@@ -140,17 +146,19 @@ export function HomeHero() {
             </mask>
           </defs>
 
-          {/* Highlight wedge behind the hovered item */}
-          <path
-            d={sectorPath(RING_R + 4, RAY.to, STEP / 2)}
-            fill="url(#hero-wedge)"
-            className={`transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none ${hovered ? "opacity-100" : "opacity-0"}`}
-            style={rotateAboutHub(ANGLES[activeIndex])}
-          />
+          {/* Highlight wedge behind the hovered item, filling its slice */}
+          {SLICES.map((slice, i) => (
+            <path
+              key={i}
+              d={sectorPath(RING_R + 4, RAY.to, slice.from + 1, slice.to - 1)}
+              fill="url(#hero-wedge)"
+              className={`transition-opacity duration-300 ease-out motion-reduce:transition-none ${hovered && i === activeIndex ? "opacity-100" : "opacity-0"}`}
+            />
+          ))}
 
           {/* Thin divider lines between items, fading outwards */}
           <g mask="url(#hero-ray-mask)" stroke="white" strokeOpacity="0.45" strokeWidth="1">
-            {[...ANGLES.map((a) => a - STEP / 2), ANGLES[ANGLES.length - 1] + STEP / 2].map((deg) => {
+            {DIVIDERS.map((deg) => {
               const a = polar(RAY.from, deg);
               const b = polar(RAY.to, deg);
               return <line key={deg} x1={round(a.x)} y1={round(a.y)} x2={round(b.x)} y2={round(b.y)} />;
@@ -158,15 +166,15 @@ export function HomeHero() {
           </g>
 
           {/* Arc around the hub, with a bright segment pointing at the active item */}
-          <path d={arcPath(RING_R, -90, 90)} fill="none" stroke="white" strokeOpacity="0.25" strokeWidth="1.5" />
+          <path d={arcPath(RING_R, DIVIDERS[0], DIVIDERS[DIVIDERS.length - 1])} fill="none" stroke="white" strokeOpacity="0.25" strokeWidth="1.5" />
           <path
-            d={arcPath(RING_R, -STEP / 2 + 3, STEP / 2 - 3)}
+            d={arcPath(RING_R, -INDICATOR_SPAN / 2, INDICATOR_SPAN / 2)}
             fill="none"
             stroke="white"
             strokeWidth="4"
             strokeLinecap="round"
             className="transition-transform duration-300 ease-out motion-reduce:transition-none"
-            style={rotateAboutHub(ANGLES[activeIndex])}
+            style={rotateAboutHub(SLICES[activeIndex].mid)}
           />
         </svg>
 
@@ -180,7 +188,7 @@ export function HomeHero() {
 
         <ul>
           {HERO_MENU.map((item, i) => {
-            const point = polar(LABEL_R, ANGLES[i]);
+            const point = polar(LABEL_R, LABEL_ANGLES[i]);
             const isActive = i === activeIndex;
             return (
               <li key={item.key} className="absolute -translate-y-1/2" style={{ left: round(point.x), top: round(point.y) }}>
