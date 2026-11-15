@@ -1,69 +1,114 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Suspense } from "react";
+import { MonthlyTop3, MonthlyTop3Skeleton } from "@/components/home/MonthlyTop3";
+import { PageShell } from "@/components/layout/PageShell";
+import { LEGACY_CHALLENGE_HREF } from "@/lib/site";
+import { entryAnchor, formatEntryDate, getVaultEntries } from "@/lib/vault/queries";
 
 export default function Home() {
+  const entries = getVaultEntries();
+  const firstEntry = entries[0];
+  const latestEntries = entries.slice(-3).reverse();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <PageShell>
+      {/* Hero */}
+      <section className="hero-glow border-b border-white/10">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
+          <p className="font-mono text-sm font-semibold uppercase tracking-widest text-accent">
+            Since 2010
           </p>
+          <h1 className="mt-3 max-w-3xl text-5xl font-black leading-[1.05] tracking-tight sm:text-7xl">
+            Hall of <span className="text-accent">FaZe</span>
+          </h1>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-muted sm:text-xl">
+            Relive the moments that built the clan, see what the community is watching this
+            month, and take on a Legacy Challenge.
+          </p>
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/vault"
+              className="inline-flex min-h-12 items-center justify-center rounded-lg bg-accent-fill px-6 font-semibold text-white transition-colors hover:bg-accent-fill-strong"
+            >
+              Explore the Vault
+            </Link>
+            <Link
+              href={LEGACY_CHALLENGE_HREF}
+              className="inline-flex min-h-12 items-center justify-center rounded-lg border border-white/20 px-6 font-semibold transition-colors hover:border-accent hover:text-accent"
+            >
+              Take a Legacy Challenge
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+
+      <div className="mx-auto max-w-6xl space-y-20 px-4 py-16 sm:px-6">
+        {/* Monthly Top 3 */}
+        <section aria-labelledby="top3-heading">
+          <Suspense fallback={<MonthlyTop3Skeleton />}>
+            <MonthlyTop3 />
+          </Suspense>
+        </section>
+
+        {/* From the Vault */}
+        <section aria-labelledby="vault-teaser-heading">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="vault-teaser-heading" className="text-2xl font-bold tracking-tight">
+              From the Vault
+            </h2>
+            <Link href="/vault" className="text-sm font-medium text-accent underline underline-offset-4">
+              See the full timeline
+            </Link>
+          </div>
+          <ul className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[firstEntry, ...latestEntries].filter(Boolean).map((entry, i) => (
+              <li key={entry.id}>
+                <Link
+                  href={`/vault#${entryAnchor(entry.id)}`}
+                  className="block h-full rounded-xl border border-white/10 bg-surface p-5 transition-colors hover:border-accent"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-wide text-accent">
+                    {i === 0 ? "Where it started" : "Recent"}
+                  </p>
+                  <time dateTime={entry.date} className="mt-2 block font-mono text-sm text-muted">
+                    {formatEntryDate(entry)}
+                  </time>
+                  <p className="mt-1 font-bold">{entry.title}</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Legacy Challenge + Historian */}
+        <section aria-label="Get involved" className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-accent/40 bg-accent/10 p-6 sm:p-8">
+            <h2 className="text-2xl font-bold tracking-tight">Legacy Challenges</h2>
+            <p className="mt-2 text-muted">
+              Recreate an iconic FaZe moment, submit your clip, and compete for this month&apos;s
+              Top 3.
+            </p>
+            <Link
+              href={LEGACY_CHALLENGE_HREF}
+              className="mt-6 inline-flex min-h-12 items-center rounded-lg bg-accent-fill px-5 font-semibold text-white transition-colors hover:bg-accent-fill-strong"
+            >
+              View challenges
+            </Link>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-surface p-6 sm:p-8">
+            <h2 className="text-2xl font-bold tracking-tight">Ask the Historian</h2>
+            <p className="mt-2 text-muted">
+              Questions about FaZe history, answered from the Vault&apos;s sourced entries.
+            </p>
+            <Link
+              href="/vault#historian"
+              className="mt-6 inline-flex min-h-12 items-center rounded-lg border border-white/20 px-5 font-semibold transition-colors hover:border-accent hover:text-accent"
+            >
+              Ask a question
+            </Link>
+          </div>
+        </section>
+      </div>
+    </PageShell>
   );
 }
