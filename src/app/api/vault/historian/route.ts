@@ -4,13 +4,14 @@ import { getCurrentUser } from "@/lib/auth";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import {
   askHistorian,
+  validateHistory,
   validateQuestion,
   QUESTION_MAX,
   QUESTION_MIN,
   type HistorianResponse,
 } from "@/lib/vault/historian";
 
-// POST /api/vault/historian  { "question": "When was FaZe founded?" }
+// POST /api/vault/historian  { "question": "When was FaZe founded?", "history": [] }
 //
 // Always responds with a HistorianResponse. Fallbacks are explicit:
 //   200 { status: "answered", ... }
@@ -33,12 +34,12 @@ export async function POST(request: NextRequest) {
   try {
     user = await getCurrentUser(request);
   } catch (error) {
-    console.error("Historian session lookup failed:", error);
+    console.error("FaZe Bot session lookup failed:", error);
     return NextResponse.json(
       {
         status: "unavailable",
         reason: "upstream_error",
-        message: "The Historian is temporarily unavailable.",
+        message: "FaZe Bot is temporarily unavailable.",
         related: [],
       } satisfies HistorianResponse,
       { status: 503 },
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         status: "unauthenticated",
-        message: "Sign in to ask the Historian.",
+        message: "Sign in to use full FaZe Bot mode.",
       } satisfies HistorianResponse,
       { status: 401 },
     );
@@ -62,11 +63,12 @@ export async function POST(request: NextRequest) {
   }
 
   const question = validateQuestion((body as { question?: unknown } | null)?.question);
-  if (!question) {
+  const history = validateHistory((body as { history?: unknown } | null)?.history);
+  if (!question || history === null) {
     const invalid: HistorianResponse = {
       status: "unsupported",
       reason: "invalid_question",
-      message: `Ask a question between ${QUESTION_MIN} and ${QUESTION_MAX} characters.`,
+      message: `Ask a question between ${QUESTION_MIN} and ${QUESTION_MAX} characters with valid recent chat history.`,
       related: [],
     };
     return NextResponse.json(invalid, { status: 400 });
@@ -93,18 +95,18 @@ export async function POST(request: NextRequest) {
       return response;
     }
   } catch (error) {
-    console.error("Historian rate limit failed:", error);
+    console.error("FaZe Bot rate limit failed:", error);
     return NextResponse.json(
       {
         status: "unavailable",
         reason: "upstream_error",
-        message: "The Historian is temporarily unavailable.",
+        message: "FaZe Bot is temporarily unavailable.",
         related: [],
       } satisfies HistorianResponse,
       { status: 503 },
     );
   }
 
-  const result = await askHistorian(question);
+  const result = await askHistorian(question, history);
   return NextResponse.json(result);
 }

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
+import { OpenFazeBotButton } from "@/components/faze-bot/OpenFazeBotButton";
 import { MonthlyTop3, MonthlyTop3Skeleton } from "@/components/home/MonthlyTop3";
 import { PageShell } from "@/components/layout/PageShell";
 import { LEGACY_CHALLENGE_HREF } from "@/lib/site";
@@ -96,7 +97,7 @@ export default function Home() {
           </ul>
         </section>
 
-        {/* Legacy Challenge + Historian */}
+        {/* Legacy Challenge + FaZe Bot */}
         <section aria-label="Get involved" className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-accent/40 bg-accent/10 p-6 sm:p-8">
             <h2 className="font-display text-3xl uppercase tracking-wide">Legacy Challenges</h2>
@@ -112,16 +113,12 @@ export default function Home() {
             </Link>
           </div>
           <div className="rounded-2xl border border-white/10 bg-surface p-6 sm:p-8">
-            <h2 className="font-display text-3xl uppercase tracking-wide">Ask the Historian</h2>
+            <h2 className="font-display text-3xl uppercase tracking-wide">Meet FaZe Bot</h2>
             <p className="mt-2 text-muted">
-              Questions about FaZe history, answered from the Vault&apos;s sourced entries.
+              Get account help before signing in, then ask follow-up questions about FaZe using
+              the sourced Vault and live web results.
             </p>
-            <Link
-              href="/vault#historian"
-              className="mt-6 inline-flex min-h-12 items-center rounded-lg border border-white/20 px-5 font-semibold transition-colors hover:border-accent hover:text-accent"
-            >
-              Ask a question
-            </Link>
+            <OpenFazeBotButton />
           </div>
         </section>
       </div>
