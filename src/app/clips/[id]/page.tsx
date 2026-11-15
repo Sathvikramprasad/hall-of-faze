@@ -53,6 +53,7 @@ async function ClipDetail({ params }: { params: Promise<{ id: string }> }) {
       <ClipPlayer src={clip.videoUrl} poster={clip.thumbnailUrl} title={clip.title} />
 
       <header>
+        {clip.status === "approved" && <Link href={`/players/${doc.uploaderId}`} className="mb-2 block text-sm text-red-400">View player profile and rank →</Link>}
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{clip.title}</h1>
         <p className="mt-1 text-sm opacity-60">
           {clip.status === "approved" && clip.approvedAt

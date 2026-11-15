@@ -9,5 +9,5 @@ export async function POST(request: NextRequest) {
   const body = await parseObject(request);
   if (!body || typeof body.challengeId !== "string" || !/^[a-f\d]{24}$/i.test(body.challengeId)) return fail(400, "INVALID_INPUT", "Valid challengeId required.");
   try { return ok(await settleChallengeMmr(body.challengeId)); }
-  catch (error) { return fail(409, "SETTLEMENT_FAILED", error instanceof Error ? error.message : "Could not settle challenge."); }
+  catch (error) { return fail(409, "CONFLICT", error instanceof Error ? error.message : "Could not settle challenge."); }
 }

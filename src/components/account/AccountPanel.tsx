@@ -137,7 +137,7 @@ export default function AccountPanel({ nextPath = null }: { nextPath?: string | 
           <MyClips />
           <SecuritySection email={user.email} />
           {user.role === "moderator" && (
-            <a href="/admin/clips" className="self-start rounded-lg border border-white/20 px-4 py-2 text-sm">Open moderation</a>
+            <div className="flex gap-3"><a href="/admin/mmr" className="rounded-lg border border-white/20 px-4 py-2 text-sm">Manage challenge rankings</a><a href="/admin/clips" className="self-start rounded-lg border border-white/20 px-4 py-2 text-sm">Open moderation</a></div>
           )}
         </div>
       </Shell>

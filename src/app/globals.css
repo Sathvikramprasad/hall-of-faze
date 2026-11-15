@@ -104,3 +104,10 @@ body {
   background-position: center;
   background-repeat: repeat;
 }
+
+/* Help opens on hover/focus and remains toggleable on touch devices. */
+.mmr-help:not([open]) > .mmr-help-content { display: none; }
+.mmr-help:hover > .mmr-help-content,
+.mmr-help:focus-within > .mmr-help-content { display: block; }
+.mmr-help:hover::details-content,
+.mmr-help:focus-within::details-content { content-visibility: visible; }

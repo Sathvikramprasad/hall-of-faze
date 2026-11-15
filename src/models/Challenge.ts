@@ -13,6 +13,8 @@ export interface IChallenge {
   eligibilitySummary: string;
   prizeSummary: string;
   sponsorName: string | null;
+  championBadgeUrl: string | null;
+  mmrSettlementVersion: number;
   /** Prizes by placing, e.g. { place: "1st", reward: "..." }. Shown on the challenge page. */
   prizes: ChallengePrize[];
   /** Plain-language steps for how to win, shown above the rules. */
@@ -44,6 +46,8 @@ const ChallengeSchema = new Schema<IChallenge>(
     eligibilitySummary: { type: String, required: true, trim: true, maxlength: 500 },
     prizeSummary: { type: String, default: "", trim: true, maxlength: 500 },
     sponsorName: { type: String, default: null, trim: true, maxlength: 120 },
+    championBadgeUrl: { type: String, default: null, maxlength: 2048, validate: { validator: (v: string | null) => v === null || /^https:\/\/[^\s]+$/.test(v), message: "Badge artwork must use HTTPS." } },
+    mmrSettlementVersion: { type: Number, default: 0 },
     prizes: {
       type: [
         {

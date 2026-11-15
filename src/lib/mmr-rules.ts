@@ -9,18 +9,18 @@ export const ROMAN: Record<Tier, string> = { 5: "V", 4: "IV", 3: "III", 2: "II",
 const DAY = 86400000;
 const clamp = (n: number, low: number, high: number) => Math.min(high, Math.max(low, n));
 export function normalizeRating(value?: Partial<Rating> | null): Rating {
-  return { tier: clamp(Math.trunc(value?.tier ?? 5), 1, 5) as Tier, points: clamp(Math.trunc(value?.points ?? 0), 0, TIER_SPAN - 1), demotionShield: Boolean(value?.demotionShield), lastActiveAt: value?.lastActiveAt ?? null, lastDecayAt: value?.lastDecayAt ?? null };
+  return { tier: clamp(Math.trunc(Number.isFinite(value?.tier) ? value!.tier! : 5), 1, 5) as Tier, points: clamp(Math.trunc(Number.isFinite(value?.points) ? value!.points! : 0), 0, TIER_SPAN - 1), demotionShield: Boolean(value?.demotionShield), lastActiveAt: value?.lastActiveAt ?? null, lastDecayAt: value?.lastDecayAt ?? null };
 }
 /** First = promotion, two seconds = promotion, three thirds = promotion.
  * Top 10% or top 10 entrants never lose rating. Other placements lose more
  * progressively, while valid votes slightly soften the penalty.
  */
 export function placementDelta({ place, participants, votes, topVotes }: Placement): number {
-  if (!Number.isInteger(place) || !Number.isInteger(participants) || place < 1 || participants < 1 || place > participants || votes < 0 || topVotes < 0) throw new Error("Invalid placement");
+  if (!Number.isInteger(place) || !Number.isInteger(participants) || place < 1 || participants < 1 || place > participants || !Number.isSafeInteger(votes) || !Number.isSafeInteger(topVotes) || votes < 0 || topVotes < 0 || votes > topVotes) throw new Error("Invalid placement");
   if (place === 1) return TIER_SPAN;
   if (place === 2) return Math.ceil(TIER_SPAN / 2);
   if (place === 3) return Math.ceil(TIER_SPAN / 3);
-  const safe = place <= 10 || place <= Math.ceil(participants * .1);
+  const safe = place <= 10 || place <= Math.floor(participants / 10);
   const voteRatio = topVotes > 0 ? clamp(votes / topVotes, 0, 1) : 0;
   if (safe) return Math.round(12 + voteRatio * 30);
   const percentile = (place - 1) / Math.max(1, participants - 1);
@@ -58,6 +58,6 @@ export function decayRating(input: Rating, now: Date): Rating {
   const from = Math.max(graceEnd, rating.lastDecayAt ? Date.parse(rating.lastDecayAt) || graceEnd : graceEnd);
   const days = Math.max(0, Math.floor((now.getTime() - from) / DAY));
   let next = rating;
-  for (let i = 0; i < days; i++) next = applyDelta(next, -8);
+  for (let i = 0; i < Math.min(days, 1000); i++) next = applyDelta(next, -8);
   return { ...next, lastDecayAt: new Date(from + days * DAY).toISOString() };
 }

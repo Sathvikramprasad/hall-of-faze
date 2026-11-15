@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "npm run test:backend && npm run test:media && npm run test:community && npm run test:sponsor && npm run test:vault && npm run test:profile",
+    "test": "npm run test:backend && npm run test:media && npm run test:community && npm run test:sponsor && npm run test:vault && npm run test:profile && npm run test:mmr",
     "test:backend": "node --experimental-strip-types --test \"tests/backend/*.test.mts\"",
     "test:media": "node --test \"tests/media/*.test.mjs\"",
     "storage:setup": "node --env-file=.env.local scripts/storage-setup.mjs",
@@ -16,7 +16,8 @@
     "seed:community": "node scripts/seed-community.mjs",
     "test:sponsor": "node --experimental-strip-types --test \"tests/sponsor/*.test.mts\"",
     "test:profile": "node --experimental-strip-types --test \"tests/profile/*.test.mts\"",
-    "test:vault": "node --experimental-strip-types --test \"tests/vault/*.test.mts\""
+    "test:vault": "node --experimental-strip-types --test \"tests/vault/*.test.mts\"",
+    "test:mmr": "tsx --test tests/mmr/*.test.mts"
   },
   "dependencies": {
     "mongoose": "^9.12.1",
@@ -31,7 +32,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
+    "mongodb-memory-server": "^11.3.0",
     "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
