@@ -76,7 +76,8 @@ export function MemberCard({ member }: { member: MemberProfile }) {
 
       {/* Explicit pointer/focus state avoids hover flicker as the panel covers the compact card. */}
       <div
-        className={`${isExpanded ? "pointer-events-auto visible scale-100 opacity-100" : "pointer-events-none invisible scale-95 opacity-0"} absolute -inset-x-3 -top-3 z-20 hidden origin-top rounded-2xl border border-accent bg-surface p-5 shadow-2xl shadow-black/70 sm:block`}
+        aria-hidden={!isExpanded}
+        className={`${isExpanded ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"} absolute -inset-x-3 -top-3 z-20 hidden origin-top rounded-2xl border border-accent bg-surface p-5 shadow-2xl shadow-black/70 transition-[opacity,scale] duration-250 ease-out motion-reduce:scale-100 motion-reduce:transition-none sm:block`}
       >
         <div className="flex items-center gap-4">
           <MemberAvatar member={member} />
