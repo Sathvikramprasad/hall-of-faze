@@ -53,7 +53,7 @@ export async function consumeRateLimit(input: {
         },
       },
     ],
-    { upsert: true, new: true },
+    { upsert: true, new: true, updatePipeline: true },
   ).lean();
 
   const attempts = record?.attempts ?? input.limit + 1;
